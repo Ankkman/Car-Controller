@@ -1,106 +1,142 @@
-using UnityEngine; 
-using UnityEngine.UI; 
-using TMPro; 
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
-public class VehicleHUD : MonoBehaviour 
-{ 
-    [Header("References")] 
-    public Rigidbody carRigidbody; 
-    public Engine engine; 
+public class VehicleHUD : MonoBehaviour
+{
+    [Header("References")]
+    public Rigidbody carRigidbody;
+    public Engine engine;
 
-    [Header("UI Text")] 
-    public TMP_Text speedText; 
-    public TMP_Text gearText; 
+    [Header("UI Text")]
+    public TMP_Text speedText;
+    public TMP_Text gearText;
 
     [Header("UI Backgrounds")]
-    public Image gearBoxImage; 
+    public Image gearBoxImage;
 
     [Header("Color Settings")]
-    [Tooltip("How fast the gear panel transitions to the new color.")]
+    [Tooltip("How fast the gear panel and text transition to their new colors.")]
     public float colorTransitionSpeed = 4f;
 
     // Internal trackers for color interpolation
     private Color targetGearColor;
     private Color currentGearColor;
+    private Color targetTextColor;
+    private Color currentTextColor;
+
+    // Custom softer green color (R: 140, G: 220, B: 140)
+    private readonly Color softGreen = new Color(0.4f, 0.85f, 0.2f, 1f);
+
+    [Header("Speed Needle")]
+    public RectTransform speedNeedle;
+    public float maxSpeed = 240f;
+    public float minNeedleAngle = 140f;
+    public float maxNeedleAngle = -140f;
+
+    public CarController carController;
 
     void Start()
     {
         // Initial clean dark variant baseline
-        currentGearColor = new Color(0.12f, 0.15f, 0.2f, 0.85f); 
+        currentGearColor = new Color(0.12f, 0.15f, 0.2f, 0.85f);
         targetGearColor = currentGearColor;
+
+        // Baseline text color (White)
+        currentTextColor = Color.white;
+        targetTextColor = currentTextColor;
+
         if (gearBoxImage != null)
         {
             gearBoxImage.color = currentGearColor;
         }
+
+        if (gearText != null)
+        {
+            gearText.color = currentTextColor;
+        }
     }
 
-    void Update() 
-    { 
-        UpdateSpeed(); 
-        UpdateGear(); 
+    void Update()
+    {
+        UpdateSpeed();
+        UpdateGear();
+        UpdateNeedle();
         ApplySmoothColorTransition();
-    } 
+    }
 
-    void UpdateSpeed() 
-    { 
-        float speedKmh = carRigidbody.linearVelocity.magnitude * 3.6f; 
+    void UpdateSpeed()
+    {
+        float speedKmh = carRigidbody.linearVelocity.magnitude * 3.6f;
         int roundedSpeed = Mathf.RoundToInt(speedKmh);
-        speedText.text = roundedSpeed.ToString(); 
+        speedText.text = roundedSpeed.ToString();
 
-        // Speed text changes text color independently as requested
+        // Speed text changes text color independently
         if (speedKmh > 200f) speedText.color = Color.red;
         else if (speedKmh > 160f) speedText.color = Color.yellow;
         else speedText.color = Color.white;
-    } 
+    }
 
-    void UpdateGear() 
-    { 
-        float forwardSpeed = Vector3.Dot(carRigidbody.transform.forward, carRigidbody.linearVelocity);
+    void UpdateGear()
+    {
+        switch (carController.currentMode)
+        {
+            case CarController.TransmissionMode.Reverse:
 
-        // 1. Reverse Logic
-        if (forwardSpeed < -0.5f || (forwardSpeed < 0.1f && Input.GetAxis("Vertical") < -0.1f))
-        {
-            gearText.text = "R";
-            targetGearColor = new Color(0.25f, 0.05f, 0.05f, 0.85f); // Deep muted red tint for reverse
-        }
-        // 2. Neutral Logic
-        else if (forwardSpeed < 0.5f && Mathf.Abs(Input.GetAxis("Vertical")) < 0.1f)
-        {
-            gearText.text = "N"; 
-            targetGearColor = new Color(0.12f, 0.12f, 0.12f, 0.85f); // Plain flat dark gray
-        }
-        // 3. Drive Gears Logic (D1 - D4+)
-        else 
-        {
-            int currentGearIndex = engine.CurrentGear; // 0 = First Gear, 1 = Second Gear, etc.
-            gearText.text = "D" + (currentGearIndex + 1); 
+                gearText.text = "R";
+                targetGearColor =
+                    new Color(0.25f, 0.05f, 0.05f, 0.85f);
+                targetTextColor = Color.red;
+                break;
 
-            // Base color scheme: dark slate blue that grows progressively richer/brighter with gears
-            switch (currentGearIndex)
-            {
-                case 0: // D1
-                    targetGearColor = new Color(0.12f, 0.16f, 0.22f, 0.85f); // Dark Slate Blue
-                    break;
-                case 1: // D2
-                    targetGearColor = new Color(0.14f, 0.20f, 0.30f, 0.85f); // Slightly Lighter Steel Blue
-                    break;
-                case 2: // D3
-                    targetGearColor = new Color(0.16f, 0.25f, 0.38f, 0.85f); // Mid-tone Racing Blue
-                    break;
-                case 3: // D4
-                default: // D5 and above
-                    targetGearColor = new Color(0.18f, 0.30f, 0.48f, 0.85f); // Bright Vivid Navy
-                    break;
-            }
+            case CarController.TransmissionMode.Neutral:
+
+                gearText.text = "N";
+                targetGearColor =
+                    new Color(0.12f, 0.12f, 0.12f, 0.85f);
+                targetTextColor = Color.gray;
+                break;
+
+            case CarController.TransmissionMode.Drive:
+
+                gearText.text = "D";
+                targetGearColor =
+                    new Color(0.12f, 0.25f, 0.12f, 0.85f);
+                targetTextColor = softGreen;
+                break;
+
+            case CarController.TransmissionMode.Park:
+
+                gearText.text = "P";
+                targetGearColor =
+                    new Color(0.05f, 0.15f, 0.25f, 0.85f);
+                targetTextColor = Color.cyan;
+                break;
         }
-    } 
+    }
+
+    void UpdateNeedle()
+    {
+        float speedKmh = carRigidbody.linearVelocity.magnitude * 3.6f;
+        float normalizedSpeed = Mathf.Clamp01(speedKmh / maxSpeed);
+        float angle = Mathf.Lerp(minNeedleAngle, maxNeedleAngle, normalizedSpeed);
+        speedNeedle.localRotation = Quaternion.Euler(0, 0, angle);
+    }
 
     void ApplySmoothColorTransition()
     {
+        // Smoothly transition background panel color
         if (gearBoxImage != null)
         {
             currentGearColor = Color.Lerp(currentGearColor, targetGearColor, Time.deltaTime * colorTransitionSpeed);
             gearBoxImage.color = currentGearColor;
+        }
+
+        // Smoothly transition gear text color
+        if (gearText != null)
+        {
+            currentTextColor = Color.Lerp(currentTextColor, targetTextColor, Time.deltaTime * colorTransitionSpeed);
+            gearText.color = currentTextColor;
         }
     }
 }

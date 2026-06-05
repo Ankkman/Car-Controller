@@ -35,30 +35,59 @@ public class BrakeLightController : MonoBehaviour
 
     void Update()
     {
-        // Default checking method (fallback if input script isn't found)
-        bool braking = Input.GetKey(KeyCode.Space);
+        CarController carController =
+            GetComponent<CarController>();
 
-        // If the BrakeSystem script is found, check if ANY brake input is given
-        if (brakeSystem != null)
+        bool braking = false;
+
+        // Space Brake
+        if (Input.GetKey(KeyCode.Space))
+            braking = true;
+
+        // Handbrake
+        if (Input.GetKey(KeyCode.LeftShift))
+            braking = true;
+
+        // D Mode + S
+        if (
+            carController != null &&
+            carController.currentMode ==
+            CarController.TransmissionMode.Drive &&
+            Input.GetAxis("Vertical") < -0.1f
+        )
         {
-            // Read input states from your custom brake methods/variables
-            // This works perfectly with the SetBrakeInput and SetHandbrakeInput system
-            braking = Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.LeftShift); 
-            
-            // NOTE: If you use different keys for handbrake (e.g. Space for Handbrake, S for Normal Brake),
-            // change 'KeyCode.LeftShift' to match your preferred secondary input key.
+            braking = true;
         }
 
-        // 1. Control the Real Scene Spotlights
-        float targetIntensity = braking ? lightOnIntensity : lightOffIntensity;
-        if (leftBrakeLight != null) leftBrakeLight.intensity = targetIntensity;
-        if (rightBrakeLight != null) rightBrakeLight.intensity = targetIntensity;
+        // R Mode + W
+        if (
+            carController != null &&
+            carController.currentMode ==
+            CarController.TransmissionMode.Reverse &&
+            Input.GetAxis("Vertical") > 0.1f
+        )
+        {
+            braking = true;
+        }
 
-        // 2. Control the Visual Mesh Glow
+        float targetIntensity =
+            braking ? lightOnIntensity : lightOffIntensity;
+
+        if (leftBrakeLight != null)
+            leftBrakeLight.intensity = targetIntensity;
+
+        if (rightBrakeLight != null)
+            rightBrakeLight.intensity = targetIntensity;
+
         if (brakeMaterial != null)
         {
-            Color targetColor = braking ? emissionOnColor : emissionOffColor;
-            brakeMaterial.SetColor("_EmissionColor", targetColor);
+            Color targetColor =
+                braking ? emissionOnColor : emissionOffColor;
+
+            brakeMaterial.SetColor(
+                "_EmissionColor",
+                targetColor
+            );
         }
     }
 }

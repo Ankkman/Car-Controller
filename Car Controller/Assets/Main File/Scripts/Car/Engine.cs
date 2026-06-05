@@ -17,6 +17,7 @@ public class Engine : MonoBehaviour
     [Header("Drivetrain")]
     public List<WheelCollider> driveWheels;  // Rear wheels for RWD
     public float finalDriveRatio = 3.5f;
+    public float reverseGearRatio = -2.8f;
 
     [Header("Gearbox")]
     public Gear[] gears;
@@ -24,7 +25,7 @@ public class Engine : MonoBehaviour
     public float shiftCooldown = 0.3f;       // Seconds between shifts (prevents flicker)
 
     [Header("Debug / Input")]
-    public float throttleInput;              // 0..1 for forward (negative not used here)
+    public float throttleInput;              // -1..1 range to support reverse
 
     [SerializeField] private float engineRPM;
     [SerializeField] private float wheelRPM;
@@ -32,12 +33,15 @@ public class Engine : MonoBehaviour
 
     private float gearRatio;
     private float lastShiftTime = -1f;
+    private CarController carController;
 
     public float EngineRPM => engineRPM;
     public int CurrentGear => currentGear;
 
     void Start()
     {
+        carController = GetComponent<CarController>();
+
         if (gears == null || gears.Length == 0)
         {
             gears = new Gear[] { new Gear { ratio = 3.0f, shiftUpRPM = 6000, shiftDownRPM = 3500 } };
@@ -87,7 +91,16 @@ public class Engine : MonoBehaviour
 
         // Compute torque from curve, multiplied by throttle
         float engineTorque = torqueCurve.Evaluate(engineRPM) * throttleInput;
-        float torquePerWheel = engineTorque * gearRatio * finalDriveRatio / driveWheels.Count;
+
+        // Determine gear ratio based on active transmission mode
+        float activeRatio = gearRatio;
+
+        if (carController != null && carController.currentMode == CarController.TransmissionMode.Reverse)
+        {
+            activeRatio = reverseGearRatio;
+        }
+
+        float torquePerWheel = engineTorque * activeRatio * finalDriveRatio / driveWheels.Count;
 
         foreach (var wheel in driveWheels)
             wheel.motorTorque = torquePerWheel;

@@ -3,17 +3,30 @@ using System.Collections.Generic;
 
 public class CarController : MonoBehaviour
 {
+    public enum TransmissionMode
+    {
+        Park,
+        Reverse,
+        Neutral,
+        Drive
+    }
+
     [Header("Wheel Colliders")]
-    public List<WheelCollider> frontWheels;   // 2 wheels
-    public List<WheelCollider> rearWheels;    // 2 wheels
+    public List<WheelCollider> frontWheels;
+    public List<WheelCollider> rearWheels;
 
     [Header("Performance")]
-    public float motorTorque = 1500f;         // Peak torque at the wheels (Nm)
+    public float motorTorque = 1500f;
     public float maxSteerAngle = 30f;
     public float brakeTorque = 3000f;
 
     [Header("Center of Mass")]
     public Vector3 centerOfMassOffset = new Vector3(0, -0.5f, 0);
+
+    [Header("Transmission")]
+    public TransmissionMode currentMode = TransmissionMode.Neutral;
+    public bool isParked = false;
+    public float transmissionSwitchSpeed = 1f;
 
     private Rigidbody rb;
     private float throttleInput;
@@ -23,12 +36,14 @@ public class CarController : MonoBehaviour
     public BrakeSystem brakeSystem;
     public Engine engine;
 
+    public float ForwardSpeed =>
+        Vector3.Dot(transform.forward, rb.linearVelocity);
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.centerOfMass += centerOfMassOffset;
 
-        // Setup friction curves
         WheelFrictionCurve forwardFriction = new WheelFrictionCurve();
         forwardFriction.extremumSlip = 0.4f;
         forwardFriction.extremumValue = 1.0f;
@@ -48,6 +63,7 @@ public class CarController : MonoBehaviour
             w.forwardFriction = forwardFriction;
             w.sidewaysFriction = sidewaysFriction;
         }
+
         foreach (var w in rearWheels)
         {
             w.forwardFriction = forwardFriction;
@@ -57,41 +73,126 @@ public class CarController : MonoBehaviour
 
     void Update()
     {
-        // Get input – you can replace with your own input system
-        throttleInput = Input.GetAxis("Vertical");
-
-        // Disable throttle while braking
-        if (Input.GetKey(KeyCode.Space))
+        //-------------------------------------------------
+        // PARK MODE INPUT CHECK
+        //-------------------------------------------------
+        if (Input.GetKeyDown(KeyCode.P))
         {
-            throttleInput = 0f;
+            isParked = !isParked;
+
+            if (isParked)
+                currentMode = TransmissionMode.Park;
+            else
+                currentMode = TransmissionMode.Neutral;
         }
 
-        steerInput = Input.GetAxis("Horizontal");    // A/D or Left/Right
+        //-------------------------------------------------
+        // PARK MODE EXECUTION
+        //-------------------------------------------------
+        if (isParked)
+        {
+            throttleInput = 0f;
+            brakeInput = 1f;
 
-        // Existing brake
-        brakeInput = Input.GetKey(KeyCode.Space) ? 1f : 0f;
+            if (brakeSystem != null)
+                brakeSystem.SetBrakeInput(brakeInput);
+
+            return;
+        }
+
+        float verticalInput = Input.GetAxis("Vertical");
+        steerInput = Input.GetAxis("Horizontal");
+        float speed = Mathf.Abs(ForwardSpeed);
+
+        //-------------------------------------------------
+        // AUTO TRANSMISSION
+        //-------------------------------------------------
+
+
+        if (currentMode == TransmissionMode.Neutral)
+        {
+            if (verticalInput > 0.1f)
+                currentMode = TransmissionMode.Drive;
+
+            else if (verticalInput < -0.1f)
+                currentMode = TransmissionMode.Reverse;
+        }
+
+        else if (currentMode == TransmissionMode.Drive)
+        {
+            // Only switch to Reverse if vehicle is basically stopped
+            if (speed < transmissionSwitchSpeed &&
+                verticalInput < -0.1f)
+            {
+                currentMode = TransmissionMode.Reverse;
+            }
+        }
+
+        else if (currentMode == TransmissionMode.Reverse)
+        {
+            // Only switch to Drive if vehicle is basically stopped
+            if (speed < transmissionSwitchSpeed &&
+                verticalInput > 0.1f)
+            {
+                currentMode = TransmissionMode.Drive;
+            }
+        }
+
+        //-------------------------------------------------
+        // DRIVE MODE
+        //-------------------------------------------------
+        if (currentMode == TransmissionMode.Drive)
+        {
+            throttleInput = Mathf.Max(0f, verticalInput);
+
+            // S acts as brake
+            brakeInput = verticalInput < -0.1f ? 1f : 0f;
+
+            if (Input.GetKey(KeyCode.Space))
+                brakeInput = 1f;
+        }
+        //-------------------------------------------------
+        // REVERSE MODE
+        //-------------------------------------------------
+        else if (currentMode == TransmissionMode.Reverse)
+        {
+            throttleInput = Mathf.Max(0f, -verticalInput);
+
+            // Brake while reversing if player presses W
+            brakeInput = verticalInput > 0.1f ? 1f : 0f;
+
+            if (Input.GetKey(KeyCode.Space))
+                brakeInput = 1f;
+        }
+        //-------------------------------------------------
+        // NEUTRAL
+        //-------------------------------------------------
+        else
+        {
+            throttleInput = 0f;
+
+            brakeInput = Input.GetKey(KeyCode.Space) ? 1f : 0f;
+        }
+
         if (brakeSystem != null)
             brakeSystem.SetBrakeInput(brakeInput);
 
-        // Handbrake – full locking of rear wheels for sliding
         float handbrake = Input.GetKey(KeyCode.LeftShift) ? 1f : 0f;
+
         if (brakeSystem != null)
             brakeSystem.SetHandbrakeInput(handbrake);
-
     }
 
     void FixedUpdate()
     {
-        // Steering (front wheels)
         foreach (var w in frontWheels)
-            w.steerAngle = steerInput * maxSteerAngle;
-
-        // Pass throttle to the engine simulation system
-        if (engine != null)
         {
-            engine.throttleInput = throttleInput; 
+            w.steerAngle = steerInput * maxSteerAngle;
         }
 
-
+        if (engine != null)
+        {
+            engine.throttleInput = throttleInput;
+        }
     }
 }
