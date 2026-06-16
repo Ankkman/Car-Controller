@@ -25,7 +25,19 @@ public class SimpleFollow : MonoBehaviour
         // 3. Keep looking right at the vehicle
         if (lookAtTarget)
         {
-            transform.LookAt(target);
+            Vector3 lookPoint = target.position + target.forward * 2f;
+
+            Quaternion targetRotation =
+                Quaternion.LookRotation(
+                    lookPoint - transform.position
+                );
+
+            transform.rotation =
+                Quaternion.Slerp(
+                    transform.rotation,
+                    targetRotation,
+                    smoothSpeed * Time.deltaTime
+                );
         }
     }
 }
