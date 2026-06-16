@@ -81,9 +81,21 @@ public class CarController : MonoBehaviour
             isParked = !isParked;
 
             if (isParked)
+            {
                 currentMode = TransmissionMode.Park;
+                
+                // FIX: Apply park settings immediately and stop processing the rest of Update()
+                throttleInput = 0f;
+                brakeInput = 1f;
+                if (brakeSystem != null)
+                    brakeSystem.SetBrakeInput(brakeInput);
+                
+                return; 
+            }
             else
+            {
                 currentMode = TransmissionMode.Neutral;
+            }
         }
 
         //-------------------------------------------------
