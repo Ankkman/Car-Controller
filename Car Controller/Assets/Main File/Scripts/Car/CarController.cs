@@ -28,6 +28,13 @@ public class CarController : MonoBehaviour
     public bool isParked = false;
     public float transmissionSwitchSpeed = 1f;
 
+    [Header("Mobile Settings")]
+    public bool useMobileInputs = false; // Add this line
+
+    [HideInInspector] public float mobileVerticalInput = 0f;
+    [HideInInspector] public float mobileSteerInput = 0f;
+
+
     private Rigidbody rb;
     private float throttleInput;
     private float steerInput;
@@ -35,6 +42,9 @@ public class CarController : MonoBehaviour
 
     public BrakeSystem brakeSystem;
     public Engine engine;
+
+    private float initializationTimer = 0f; // fix sound at start
+
 
     public float ForwardSpeed =>
         Vector3.Dot(transform.forward, rb.linearVelocity);
@@ -69,10 +79,34 @@ public class CarController : MonoBehaviour
             w.forwardFriction = forwardFriction;
             w.sidewaysFriction = sidewaysFriction;
         }
+
+        // --- CRITICAL SPIDER-FIX FOR PC STARTUP SPIKE ---
+        // Forcefully clamp physical inputs to 0 on frame zero before FixedUpdate runs
+        throttleInput = 0f;
+        brakeInput = 1f;
+        if (brakeSystem != null)
+            brakeSystem.SetBrakeInput(brakeInput);
+            
+        if (engine != null)
+            engine.throttleInput = 0f;
     }
+
 
     void Update()
     {
+
+        // --- PC IGNITION INPUT PROTECTION ---
+        if (initializationTimer < 0.05f)
+        {
+            initializationTimer += Time.deltaTime;
+            
+            // Enforce absolute silent parking defaults during initialization
+            throttleInput = 0f;
+            brakeInput = 1f;
+            if (brakeSystem != null) brakeSystem.SetBrakeInput(brakeInput);
+            return; // Exit early to block input reads during frame zero spikes
+        }
+
         //-------------------------------------------------
         // PARK MODE INPUT CHECK
         //-------------------------------------------------
@@ -98,23 +132,35 @@ public class CarController : MonoBehaviour
             }
         }
 
-        //-------------------------------------------------
-        // PARK MODE EXECUTION
-        //-------------------------------------------------
-        if (isParked)
-        {
-            throttleInput = 0f;
-            brakeInput = 1f;
+    //------------------------------------------------- 
+    // PARK MODE EXECUTION 
+    //------------------------------------------------- 
+    if (isParked) { 
+        throttleInput = 0f; 
+        brakeInput = 1f; 
+        if (brakeSystem != null) brakeSystem.SetBrakeInput(brakeInput); 
+        return; 
+    } 
 
-            if (brakeSystem != null)
-                brakeSystem.SetBrakeInput(brakeInput);
+    // --- CHANGE STARTS HERE --- 
+    float verticalInput = 0f; 
+    float steerInputTemp = 0f; 
 
-            return;
-        }
+    if (useMobileInputs) { 
+        // If mobile is enabled, we take the inputs set by the mobile script 
+        verticalInput = mobileVerticalInput; 
+        steerInputTemp = mobileSteerInput; 
+        // Ensure the local variable is updated for physics 
+        steerInput = steerInputTemp; 
+    } else { 
+        // Your original PC inputs 
+        verticalInput = Input.GetAxis("Vertical"); 
+        steerInput = Input.GetAxis("Horizontal"); 
+    } 
+    // --- CHANGE ENDS HERE --- 
 
-        float verticalInput = Input.GetAxis("Vertical");
-        steerInput = Input.GetAxis("Horizontal");
-        float speed = Mathf.Abs(ForwardSpeed);
+    float speed = Mathf.Abs(ForwardSpeed); 
+
 
         //-------------------------------------------------
         // AUTO TRANSMISSION

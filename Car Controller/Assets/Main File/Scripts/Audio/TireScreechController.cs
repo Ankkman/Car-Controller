@@ -19,14 +19,11 @@ public class TireScreechController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        // Safely verify the audio state without forcing abrupt state changes
         if (screechAudio != null)
         {
             screechAudio.loop = true;
-            if (!screechAudio.isPlaying)
-            {
-                screechAudio.Play();
-            }
+            screechAudio.volume = 0f; // --- FIX: Start completely silent on frame zero ---
+            screechAudio.Play();
         }
     }
 
@@ -38,6 +35,7 @@ public class TireScreechController : MonoBehaviour
         bool screeching = false;
         float speedKmh = rb.linearVelocity.magnitude * 3.6f;
 
+        // The physics loop stays active here so it screeches while sliding in park mode
         if (speedKmh > speedThreshold)
         {
             foreach (var wheel in wheels)
@@ -56,13 +54,13 @@ public class TireScreechController : MonoBehaviour
             }
         }
 
-        // Smoothly scale volume up to 1f when sliding, down to 0f when gripping
+        // Smoothly scale volume up to 1f when sliding, down to 0f when gripping or stopped
         float targetVolume = screeching ? 1f : 0f;
         
         screechAudio.volume = Mathf.MoveTowards(
             screechAudio.volume,
             targetVolume,
-            Time.deltaTime * 4f // Slightly faster response speed for instant reaction
+            Time.deltaTime * 4f 
         );
     }
 }

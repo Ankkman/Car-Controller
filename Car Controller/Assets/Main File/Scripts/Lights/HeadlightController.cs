@@ -11,13 +11,19 @@ public class HeadlightController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.L))
         {
-            headlightsOn = !headlightsOn;
-
-            if (leftHeadlight != null)
-                leftHeadlight.enabled = headlightsOn;
-
-            if (rightHeadlight != null)
-                rightHeadlight.enabled = headlightsOn;
+            ToggleHeadlights();
         }
+    }
+
+    // --- ADD THIS PUBLIC METHOD FOR MOBILE ACCESS ---
+    public void ToggleHeadlights()
+    {
+        headlightsOn = !headlightsOn;
+
+        if (leftHeadlight != null)
+            leftHeadlight.enabled = headlightsOn;
+
+        if (rightHeadlight != null)
+            rightHeadlight.enabled = headlightsOn;
     }
 }

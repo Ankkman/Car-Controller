@@ -8,14 +8,23 @@ public class HornController : MonoBehaviour
     {
         if (hornAudio == null) return;
 
-        // 1. Play the horn when the H key is first pressed down
-        if (Input.GetKeyDown(KeyCode.H))
+        // Keyboard PC Inputs
+        if (Input.GetKeyDown(KeyCode.H)) PlayHorn();
+        if (Input.GetKeyUp(KeyCode.H)) StopHorn();
+    }
+
+    // --- PUBLIC METHODS FOR MOBILE & PC USE ---
+    public void PlayHorn()
+    {
+        if (hornAudio != null && !hornAudio.isPlaying)
         {
             hornAudio.Play();
         }
+    }
 
-        // 2. Stop the horn instantly the exact moment the H key is released
-        if (Input.GetKeyUp(KeyCode.H))
+    public void StopHorn()
+    {
+        if (hornAudio != null)
         {
             hornAudio.Stop();
         }
