@@ -22,7 +22,7 @@ public class BrakeSystem : MonoBehaviour
     [Header("Visual Lights (Spotlights)")]
     public Light leftBrakeLight;
     public Light rightBrakeLight;
-    public float lightOnIntensity = 20f; // Higher intensity for URP
+    public float lightOnIntensity = 20f; 
     public float lightOffIntensity = 0f;
 
     [Header("Visual Mesh Glow (Materials)")]
@@ -37,14 +37,19 @@ public class BrakeSystem : MonoBehaviour
     public List<WheelCollider> rearWheels;
 
     private Rigidbody rb;
-    private float brakeInput;
+    // --- FIXED: Changed to public so other custom managers can check values safely if needed ---
+    public float brakeInput; 
     private float handbrakeInput;
     private float currentBrakeTorque;
     private float currentHandbrakeTorque;
 
+    // --- ADDED: Reference to check Park state ---
+    private CarController carController; 
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        carController = GetComponent<CarController>();
 
         // Cache and enable emission on your backlight material
         if (carRenderer != null && brakeMaterialIndex < carRenderer.materials.Length)
@@ -59,8 +64,9 @@ public class BrakeSystem : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Check if either regular brake OR handbrake is actively being pressed
-        bool isBrakingVisual = (brakeInput > 0.01f || handbrakeInput > 0.01f);
+        // --- FIXED VISUAL BRAKING CONDITION (Includes checking if car is parked) ---
+        bool isParked = (carController != null && carController.isParked);
+        bool isBrakingVisual = (brakeInput > 0.01f || handbrakeInput > 0.01f || isParked);
 
         // 1. Control the Visual Spotlights
         float targetIntensity = isBrakingVisual ? lightOnIntensity : lightOffIntensity;
@@ -86,8 +92,11 @@ public class BrakeSystem : MonoBehaviour
             return; 
         }
 
+        // If locked in park mode, enforce maximum physical braking forces directly
+        float effectiveBrakeInput = isParked ? 1f : brakeInput;
+
         // Ramp main brake torque
-        float targetBrake = brakeInput * maxBrakeTorque;
+        float targetBrake = effectiveBrakeInput * maxBrakeTorque;
         currentBrakeTorque = Mathf.MoveTowards(currentBrakeTorque, targetBrake, brakeRampSpeed * Time.fixedDeltaTime);
 
         // Ramp handbrake torque

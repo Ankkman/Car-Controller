@@ -15,15 +15,17 @@ public class BrakeLightController : MonoBehaviour
     public float lightOffIntensity = 0f;
 
     private Material brakeMaterial;
-    private BrakeSystem brakeSystem; // Reference to your physics brake script
+    private BrakeSystem brakeSystem; 
+    private CarController carController; // Cached for performance
 
     private readonly Color emissionOffColor = new Color(0.05f, 0f, 0f); 
     private readonly Color emissionOnColor = Color.red * 25f; // Multiplied by 25 for URP HDR glow
 
     void Start()
     {
-        // Find the BrakeSystem script attached to this car
+        // Cache our script references
         brakeSystem = GetComponent<BrakeSystem>();
+        carController = GetComponent<CarController>();
 
         // Cache the material instance safely
         if (carRenderer != null && brakeMaterialIndex < carRenderer.materials.Length)
@@ -35,43 +37,26 @@ public class BrakeLightController : MonoBehaviour
 
     void Update()
     {
-        CarController carController =
-            GetComponent<CarController>();
-
         bool braking = false;
 
-        // Space Brake
-        if (Input.GetKey(KeyCode.Space))
-            braking = true;
-
-        // Handbrake
-        if (Input.GetKey(KeyCode.LeftShift))
-            braking = true;
-
-        // D Mode + S
-        if (
-            carController != null &&
-            carController.currentMode ==
-            CarController.TransmissionMode.Drive &&
-            Input.GetAxis("Vertical") < -0.1f
-        )
+        if (carController != null)
         {
-            braking = true;
+            // 1. Check if the vehicle is locked in Park mode
+            if (carController.isParked)
+            {
+                braking = true;
+            }
+            // 2. Check if the PC or Mobile layout is currently passing brake pressure
+            // (If useMobileInputs is active, MobileCarInput updates the brakeSystem component directly!)
+            else if (brakeSystem != null && brakeSystem.brakeInput > 0.1f)
+            {
+                braking = true;
+            }
+
         }
 
-        // R Mode + W
-        if (
-            carController != null &&
-            carController.currentMode ==
-            CarController.TransmissionMode.Reverse &&
-            Input.GetAxis("Vertical") > 0.1f
-        )
-        {
-            braking = true;
-        }
-
-        float targetIntensity =
-            braking ? lightOnIntensity : lightOffIntensity;
+        // --- APPLY VISUAL CHANGES (Keep this exactly the same) ---
+        float targetIntensity = braking ? lightOnIntensity : lightOffIntensity;
 
         if (leftBrakeLight != null)
             leftBrakeLight.intensity = targetIntensity;
@@ -81,13 +66,9 @@ public class BrakeLightController : MonoBehaviour
 
         if (brakeMaterial != null)
         {
-            Color targetColor =
-                braking ? emissionOnColor : emissionOffColor;
-
-            brakeMaterial.SetColor(
-                "_EmissionColor",
-                targetColor
-            );
+            Color targetColor = braking ? emissionOnColor : emissionOffColor;
+            brakeMaterial.SetColor("_EmissionColor", targetColor);
         }
     }
+
 }

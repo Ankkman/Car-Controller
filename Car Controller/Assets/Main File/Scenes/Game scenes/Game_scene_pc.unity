@@ -717980,6 +717980,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   engine: {fileID: 5598454766920578653}
+  carController: {fileID: 0}
   engineSource: {fileID: 6168292371095224826}
   minPitch: 0.8
   maxPitch: 2
@@ -723262,6 +723263,7 @@ GameObject:
   - component: {fileID: 2507914979117520752}
   - component: {fileID: 1598431811305799487}
   - component: {fileID: 2638616975492783444}
+  - component: {fileID: 9025970520976188795}
   m_Layer: 0
   m_Name: Chev
   m_TagString: Untagged
@@ -728507,6 +728509,7 @@ MonoBehaviour:
   rearWheels:
   - {fileID: 1654630930275436425}
   - {fileID: 2818238525230715383}
+  brakeInput: 0
 --- !u!4 &5171794124864772460
 Transform:
   m_ObjectHideFlags: 0
@@ -735686,6 +735689,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.49, y: 1.67, z: 5.98}
   m_Center: {x: -0.04, y: 1.15, z: -2.95}
+--- !u!114 &9025970520976188795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981444522993143838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 992f6fa940b5d0245a453df0a5f81443, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  carController: {fileID: 4719924535565165431}
+  mobileInput: {fileID: 0}
+  useAutomaticTransmission: 1
 --- !u!4 &9061692902916037479
 Transform:
   m_ObjectHideFlags: 0
