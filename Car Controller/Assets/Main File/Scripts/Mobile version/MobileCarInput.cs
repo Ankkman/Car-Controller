@@ -15,71 +15,84 @@ public class MobileCarInput : MonoBehaviour
     private float steerValue = 0f;
     private float throttleValue = 0f;
     private float brakeValue = 0f;
-    public bool isParked = true; 
 
-    [Header("UI Glow Effects")]
-    public UnityEngine.UI.Outline parkOutline;
-    public Color parkOffGlow = new Color(0,0,0,0);
-    public Color parkOnGlow = new Color(1, 0, 0, 1);
+    [Header("Steering Control")]
+    public MobileSteeringWheel steeringWheel;
+    public float steeringDeadzone = 0.05f; 
 
-    public UnityEngine.UI.Outline lightOutline;
-    public Color lightOffGlow = new Color(0,0,0,0);
-    public Color lightOnGlow = new Color(1, 1, 0, 1);
+    [Header("UI Canvases to Switch")]
+    public GameObject buttonUICanvas;   
+    public GameObject steeringUICanvas; 
+
+    [Header("Glow Pill Indicators")]
+    public UnityEngine.UI.Image engineStatusIndicator; // Drag Engine Glow Pill here
+    public UnityEngine.UI.Image lightStatusIndicator;  // Drag Headlight Glow Pill here
 
     void Start()
     {
         if (carController == null) carController = GetComponent<CarController>();
         if (engine == null) engine = GetComponent<Engine>();
 
+        // --- CRITICAL INITIALIZATION FIXES ---
+        SettingsManager.LoadSettings(); // Load saved preferences
+        UpdateControlUI();              // Turn on correct steering setup UI canvas immediately
+        // -------------------------------------
+
         if (carController != null)
         {
             carController.useMobileInputs = true;
-            carController.currentMode = CarController.TransmissionMode.Park;
-            carController.isParked = true;
+            carController.engineOn = false;
+            carController.currentMode = CarController.TransmissionMode.Park; 
+            
             brakeValue = 1f; 
         }
 
-        if (parkOutline != null) parkOutline.effectColor = parkOnGlow;
-        if (lightOutline != null) lightOutline.effectColor = lightOffGlow;
+        // --- FIX: Force default indicators to dark gray on game startup ---
+        if (engineStatusIndicator != null) 
+            engineStatusIndicator.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
+        if (lightStatusIndicator != null) 
+            lightStatusIndicator.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+    }
+
+    public void UpdateControlUI()
+    {
+        bool isSteering = SettingsManager.CurrentControl == SettingsManager.ControlType.Steering;
+
+        if (buttonUICanvas != null) buttonUICanvas.SetActive(!isSteering);
+        if (steeringUICanvas != null) steeringUICanvas.SetActive(isSteering);
     }
 
     void Update()
     {
         if (carController == null) return;
 
-        // Park Mode
-        if (isParked)
+        if (!carController.engineOn)
         {
             carController.mobileVerticalInput = 0f; 
             carController.mobileSteerInput = 0f;
-            if (carController.brakeSystem != null) carController.brakeSystem.SetBrakeInput(brakeValue);
+            if (carController.brakeSystem != null) carController.brakeSystem.SetBrakeInput(1f); 
             return; 
         }
 
-        // --- Calculate Inputs for the Car ---
-        float verticalInput = 0f;
+        float currentSteer = 0f;
 
-        // Gas ALWAYS overrides Brake.
-        if (throttleValue > 0.01f) 
+        if (SettingsManager.CurrentControl == SettingsManager.ControlType.Steering && steeringWheel != null)
         {
-            verticalInput = 1f; 
+            currentSteer = steeringWheel.steeringValue; 
         }
-        else if (brakeValue > 0.01f) 
+        else
         {
-            verticalInput = -1f; 
+            currentSteer = steerValue;
         }
-        else 
-        {
-            verticalInput = 0f;  
-        }
+
+        float verticalInput = 0f;
+        if (throttleValue > 0.01f) verticalInput = 1f; 
+        else if (brakeValue > 0.01f) verticalInput = -1f; 
+        else verticalInput = 0f;  
 
         carController.mobileVerticalInput = verticalInput;
-        carController.mobileSteerInput = steerValue;
-
-        // --- CRITICAL FIX: DELETE THE LINE BELOW ---
-        // if (engine != null) engine.throttleInput = throttleValue;
-        // We removed it because the CarController handles the throttle/brain logic now.
-        // -------------------------------------------
+        carController.mobileSteerInput = currentSteer; 
     }
 
     // --- STEERING ---
@@ -96,45 +109,41 @@ public class MobileCarInput : MonoBehaviour
     public void BrakePressed() { brakeValue = 1f; }
     public void BrakeReleased() { brakeValue = 0f; }
 
-    // --- PARK MODE ---
-    public void ToggleParkModeEvent() { ToggleParkMode(); }
-    public void ToggleParkMode()
+    // --- ENGINE TOGGLE SYSTEM ---
+    public void ToggleEngineMode()
     {
-        isParked = !isParked;
-        carController.isParked = isParked;
+        if (carController == null) return;
+        
+        carController.ToggleEngineState(); 
 
-        if (isParked)
+        throttleValue = 0f;
+        brakeValue = carController.engineOn ? 0f : 1f;
+        steerValue = 0f;
+
+        // Sync Engine Pill: Green when ON, Dark Gray when OFF
+        if (engineStatusIndicator != null)
         {
-            carController.currentMode = CarController.TransmissionMode.Park;
-            throttleValue = 0f;
-            brakeValue = 1f;
-            steerValue = 0f;
-            if (parkOutline != null) parkOutline.effectColor = parkOnGlow;
-        }
-        else
-        {
-            carController.currentMode = CarController.TransmissionMode.Neutral;
-            throttleValue = 0f;
-            brakeValue = 0f;
-            steerValue = 0f;
-            if (parkOutline != null) parkOutline.effectColor = parkOffGlow;
+            engineStatusIndicator.color = carController.engineOn ? Color.green : new Color(0.15f, 0.15f, 0.15f, 1f);
         }
     }
 
-    // --- HEADLIGHTS & HORN ---
+    // --- HEADLIGHT TOGGLE SYSTEM ---
     public void ToggleHeadlightsEvent()
     {
         if (headlightController != null)
         {
             headlightController.ToggleHeadlights();
-            if (lightOutline != null)
+
+            // Sync Headlight Pill: Yellow when ON, Dark Gray when OFF
+            if (lightStatusIndicator != null)
             {
                 bool areLightsOn = headlightController.leftHeadlight != null ? headlightController.leftHeadlight.enabled : false;
-                lightOutline.effectColor = areLightsOn ? lightOnGlow : lightOffGlow;
+                lightStatusIndicator.color = areLightsOn ? Color.yellow : new Color(0.15f, 0.15f, 0.15f, 1f);
             }
         }
     }
 
+    // --- ACCESSORY BUTTONS ---
     public void HornPressed() { if (hornController != null) hornController.PlayHorn(); }
     public void HornReleased() { if (hornController != null) hornController.StopHorn(); }
 }

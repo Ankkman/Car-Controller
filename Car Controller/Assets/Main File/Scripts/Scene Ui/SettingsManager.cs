@@ -2,20 +2,24 @@ using UnityEngine;
 
 public static class SettingsManager
 {
+    public enum ControlType { Buttons, Steering }
+    
     public static bool IsAutomatic = true;
+    public static ControlType CurrentControl = ControlType.Buttons;
 
-    // Call this to load the saved setting
     public static void LoadSettings()
     {
-        // Default to 1 (true) if no setting is found yet
         IsAutomatic = PlayerPrefs.GetInt("IsAutomatic", 1) == 1;
+        CurrentControl = (ControlType)PlayerPrefs.GetInt("ControlType", 0); // 0 = Buttons, 1 = Steering
     }
 
-    // Call this when the user changes the Toggle in the UI
-    public static void SaveSettings(bool isAuto)
+    public static void SaveSettings(bool isAuto, ControlType control)
     {
         IsAutomatic = isAuto;
+        CurrentControl = control;
+        
         PlayerPrefs.SetInt("IsAutomatic", isAuto ? 1 : 0);
-        PlayerPrefs.Save(); // Forces it to write to disk immediately
+        PlayerPrefs.SetInt("ControlType", (int)control);
+        PlayerPrefs.Save();
     }
 }

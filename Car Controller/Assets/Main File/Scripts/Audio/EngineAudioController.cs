@@ -22,34 +22,28 @@ public class EngineAudioController : MonoBehaviour
         if (carController == null) 
             carController = GetComponentInParent<CarController>();
 
-        // --- CRITICAL FIX: FORCE ABSOLUTE SILENCE ON FRAME ZERO ---
         if (engineSource != null)
         {
-            engineSource.playOnAwake = false; // Disable awake playback via code
-            engineSource.volume = 0f;         // Kill volume instantly at boot
-            engineSource.Stop();              // Force stop any native caching loops
+            engineSource.playOnAwake = false;
+            engineSource.volume = 0f;
+            engineSource.Stop();
         }
     }
 
     void Update()
     {
-        if (engine == null || engineSource == null)
+        if (engine == null || engineSource == null || carController == null)
             return;
 
-        // Mute engine sound completely when parked
-        if (carController != null && carController.isParked)
+        // UPDATED CHECK: Mute engine if car is OFF
+        if (!carController.engineOn)
         {
             engineSource.volume = 0f;
-            
-            // --- OPTIMIZATION: Stop the source channel so it cannot leak sound ---
-            if (engineSource.isPlaying)
-            {
-                engineSource.Stop();
-            }
+            if (engineSource.isPlaying) engineSource.Stop();
             return; 
         }
 
-        // Make sure it starts playing once we unpark
+        // Make sure it starts playing once the engine is ON
         if (!engineSource.isPlaying)
         {
             engineSource.Play();
@@ -58,10 +52,7 @@ public class EngineAudioController : MonoBehaviour
         // Get a 0 to 1 value based on current RPM
         float rpmNormalized = Mathf.Clamp01(engine.EngineRPM / maxRPM);
 
-        // 1. Smoothly adjust Pitch
         engineSource.pitch = Mathf.Lerp(minPitch, maxPitch, rpmNormalized);
-
-        // 2. Smoothly adjust Volume based on engine load
         engineSource.volume = Mathf.Lerp(minVolume, maxVolume, rpmNormalized);
     }
 }

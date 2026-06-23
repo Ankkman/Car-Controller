@@ -22,23 +22,24 @@ public class VehicleInputHandler : MonoBehaviour
         // Load the saved setting on game start
         SettingsManager.LoadSettings();
         useAutomaticTransmission = SettingsManager.IsAutomatic;
-        carController.isAutomaticMode = useAutomaticTransmission;
+        if (carController != null)
+        {
+            carController.isAutomaticMode = useAutomaticTransmission;
+        }
 
         // Hide/Show Gear buttons based on loaded mode
         if(gearShiftButtons != null)
             gearShiftButtons.SetActive(!useAutomaticTransmission); 
-
-        if (mobileInput != null && carController != null)
-        {
-            mobileInput.isParked = carController.isParked;
-        }
     }
 
     // --- NEW: PUBLIC METHOD TO SWITCH MODES INSTANTLY ---
     public void SetTransmissionMode(bool isAuto)
     {
         useAutomaticTransmission = isAuto;
-        carController.isAutomaticMode = isAuto;
+        if (carController != null)
+        {
+            carController.isAutomaticMode = isAuto;
+        }
 
         // Immediately hide the Gear buttons if Auto is turned on
         if(gearShiftButtons != null)
@@ -48,7 +49,9 @@ public class VehicleInputHandler : MonoBehaviour
     void Update()
     {
         if (carController == null) return;
-        if (carController.isParked) return; 
+        
+        // --- FIXED: Switch from old isParked check to engine state master control ---
+        if (!carController.engineOn) return; 
 
         // Get input from Mobile or PC
         if (mobileInput != null && carController.useMobileInputs) {
@@ -90,7 +93,8 @@ public class VehicleInputHandler : MonoBehaviour
     // --- MANUAL MODE BUTTONS ---
     public void ManualShiftUp()
     {
-        if (carController == null || carController.isParked || useAutomaticTransmission) return;
+        // --- FIXED: Checked engine state instead of isParked ---
+        if (carController == null || !carController.engineOn || useAutomaticTransmission) return;
 
         if (carController.currentMode == CarController.TransmissionMode.Reverse)
             carController.currentMode = CarController.TransmissionMode.Neutral;
@@ -100,7 +104,8 @@ public class VehicleInputHandler : MonoBehaviour
 
     public void ManualShiftDown()
     {
-        if (carController == null || carController.isParked || useAutomaticTransmission) return;
+        // --- FIXED: Checked engine state instead of isParked ---
+        if (carController == null || !carController.engineOn || useAutomaticTransmission) return;
 
         if (carController.currentMode == CarController.TransmissionMode.Drive)
             carController.currentMode = CarController.TransmissionMode.Neutral;

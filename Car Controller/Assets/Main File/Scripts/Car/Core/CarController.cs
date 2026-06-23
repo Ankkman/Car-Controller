@@ -24,18 +24,20 @@ public class CarController : MonoBehaviour
     public Vector3 centerOfMassOffset = new Vector3(0, -0.5f, 0);
 
     [Header("Transmission")]
-    public bool isAutomaticMode = true; // <--- ADD THIS LINE
-    // --- FIXED: Formally default variables to start locked in Park Mode ---
+    public bool isAutomaticMode = true; 
     public TransmissionMode currentMode = TransmissionMode.Park;
-    public bool isParked = true;
     public float transmissionSwitchSpeed = 1f;
+
+    [Header("Engine State")]
+    public bool engineOn = false; // Starts OFF
+    public AudioSource engineStartSound; // Drag an AudioSource for the start sound here
+    public AudioSource engineStopSound;  // Drag an AudioSource for the stop sound here
 
     [Header("Mobile Settings")]
     public bool useMobileInputs = false; 
 
     [HideInInspector] public float mobileVerticalInput = 0f;
     [HideInInspector] public float mobileSteerInput = 0f;
-
 
     private Rigidbody rb;
     private float throttleInput;
@@ -45,11 +47,9 @@ public class CarController : MonoBehaviour
     public BrakeSystem brakeSystem;
     public Engine engine;
 
-    private float initializationTimer = 0f; // fix sound at start
+    private float initializationTimer = 0f; // Fixes sound spike at start
 
-
-    public float ForwardSpeed =>
-        Vector3.Dot(transform.forward, rb.linearVelocity);
+    public float ForwardSpeed => rb != null ? Vector3.Dot(transform.forward, rb.linearVelocity) : 0f;
 
     void Start()
     {
@@ -82,10 +82,9 @@ public class CarController : MonoBehaviour
             w.sidewaysFriction = sidewaysFriction;
         }
 
-        // --- CRITICAL SPIDER-FIX FOR PC STARTUP SPIKE ---
-        // Forcefully clamp physical inputs to 0 on frame zero before FixedUpdate runs
+        // FIX: Set brake to 0 on frame zero so suspension can settle into the ground!
         throttleInput = 0f;
-        brakeInput = 1f;
+        brakeInput = 0f; 
         if (brakeSystem != null)
             brakeSystem.SetBrakeInput(brakeInput);
             
@@ -93,66 +92,73 @@ public class CarController : MonoBehaviour
             engine.throttleInput = 0f;
     }
 
-
-    void Update()
+    public void ToggleEngineState()
     {
-        // --- PC IGNITION INPUT PROTECTION ---
-        if (initializationTimer < 0.05f)
+        engineOn = !engineOn;
+
+        if (engineOn)
         {
-            initializationTimer += Time.deltaTime;
+            // ENGINE ON: Start in Neutral, release brakes
+            currentMode = TransmissionMode.Neutral;
+            throttleInput = 0f;
+            brakeInput = 0f;
+            if (brakeSystem != null) brakeSystem.SetBrakeInput(0f);
+            
+            // Play Start Sound
+            if (engineStartSound != null) engineStartSound.Play();
+        }
+        else
+        {
+            // ENGINE OFF: Apply physical brakes immediately, cut everything
+            currentMode = TransmissionMode.Park;
             throttleInput = 0f;
             brakeInput = 1f;
             if (brakeSystem != null) brakeSystem.SetBrakeInput(brakeInput);
+            
+            // Play Stop Sound
+            if (engineStopSound != null) engineStopSound.Play();
+        }
+    }
+
+    void Update()
+    {
+        // --- PC IGNITION INPUT PROTECTION & SPAWN SETTLE ---
+        if (initializationTimer < 0.1f) 
+        {
+            initializationTimer += Time.deltaTime;
+            throttleInput = 0f;
+            brakeInput = 0f; 
+            
+            if (brakeSystem != null) brakeSystem.SetBrakeInput(brakeInput);
+            
+            // --- FIX: Forcefully put Rigidbody to sleep so suspension doesn't jitter/sink on frame zero ---
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
             return; 
         }
 
-        //-------------------------------------------------
-        // PARK MODE INPUT CHECK
-        //-------------------------------------------------
-        if (Input.GetKeyDown(KeyCode.P))
+        // --- MASTER SWITCH: If engine is OFF, do nothing! ---
+        if (!engineOn)
         {
-            isParked = !isParked;
-
-            if (isParked)
-            {
-                currentMode = TransmissionMode.Park;
-                throttleInput = 0f;
-                brakeInput = 1f;
-                if (brakeSystem != null) brakeSystem.SetBrakeInput(brakeInput);
-                return; 
-            }
-            else
-            {
-                currentMode = TransmissionMode.Neutral;
-            }
-        }
-
-        //------------------------------------------------- 
-        // PARK MODE EXECUTION 
-        //------------------------------------------------- 
-        if (isParked) { 
-            throttleInput = 0f; 
-            brakeInput = 1f; 
+            throttleInput = 0f;
+            brakeInput = 1f; // Safely lock brakes after the rigid body settles
             if (brakeSystem != null) brakeSystem.SetBrakeInput(brakeInput); 
             return; 
-        } 
+        }
 
-        // --- CHANGE STARTS HERE --- 
+        // --- INPUT PROJECTION SYSTEM --- 
         float verticalInput = 0f; 
-        float steerInputTemp = 0f; 
 
         if (useMobileInputs) { 
             verticalInput = mobileVerticalInput; 
-            steerInputTemp = mobileSteerInput; 
-            steerInput = steerInputTemp; 
+            steerInput = mobileSteerInput; 
         } else { 
             verticalInput = Input.GetAxis("Vertical"); 
             steerInput = Input.GetAxis("Horizontal"); 
         } 
-        // --- CHANGE ENDS HERE --- 
-
-        float speed = Mathf.Abs(ForwardSpeed); 
-
 
         //-------------------------------------------------
         // DRIVE MODE
@@ -168,26 +174,21 @@ public class CarController : MonoBehaviour
         //-------------------------------------------------
         else if (currentMode == TransmissionMode.Reverse)
         {
-            // SPLIT LOGIC FOR AUTO VS MANUAL
             if (isAutomaticMode)
             {
-                // AUTO MODE: 
-                // Brake (-1) = Give torque to go backwards.
-                // Gas (+1) = Cut torque and apply physical brakes to stop reverse momentum.
                 if (verticalInput < -0.1f) 
                 {
-                    throttleInput = 1f; // Send full throttle to move backwards
-                    brakeInput = 0f;    // Do not lock wheels
+                    throttleInput = 1f; 
+                    brakeInput = 0f;    
                 }
                 else
                 {
-                    throttleInput = 0f; // Cut all reverse power
-                    brakeInput = verticalInput > 0.1f ? 1f : 0f; // If Gas (+1) is pressed, apply brakes!
+                    throttleInput = 0f; 
+                    brakeInput = verticalInput > 0.1f ? 1f : 0f; 
                 }
             }
             else
             {
-                // MANUAL MODE: Gas pedal triggers throttle, Brake pedal triggers physical brake
                 throttleInput = Mathf.Max(0f, verticalInput); 
                 brakeInput = verticalInput < -0.1f ? 1f : 0f;
             }
@@ -207,22 +208,22 @@ public class CarController : MonoBehaviour
         if (brakeSystem != null)
         {
             brakeSystem.SetBrakeInput(brakeInput);
-            
-            float handbrake = Input.GetKey(KeyCode.LeftShift) ? 1f : 0f;
-            brakeSystem.SetHandbrakeInput(handbrake);
-        }
-    }
-
-    void FixedUpdate()
-    {
-        foreach (var w in frontWheels)
-        {
-            w.steerAngle = steerInput * maxSteerAngle;
         }
 
         if (engine != null)
         {
             engine.throttleInput = throttleInput;
+        }
+
+        HandleSteering();
+    }
+
+    private void HandleSteering()
+    {
+        float targetSteerAngle = steerInput * maxSteerAngle;
+        foreach (var wheel in frontWheels)
+        {
+            wheel.steerAngle = targetSteerAngle;
         }
     }
 }

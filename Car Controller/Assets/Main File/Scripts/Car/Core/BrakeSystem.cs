@@ -37,13 +37,12 @@ public class BrakeSystem : MonoBehaviour
     public List<WheelCollider> rearWheels;
 
     private Rigidbody rb;
-    // --- FIXED: Changed to public so other custom managers can check values safely if needed ---
     public float brakeInput; 
     private float handbrakeInput;
     private float currentBrakeTorque;
     private float currentHandbrakeTorque;
 
-    // --- ADDED: Reference to check Park state ---
+    // Reference to check Engine/Park state
     private CarController carController; 
 
     void Start()
@@ -64,9 +63,11 @@ public class BrakeSystem : MonoBehaviour
 
     void FixedUpdate()
     {
-        // --- FIXED VISUAL BRAKING CONDITION (Includes checking if car is parked) ---
-        bool isParked = (carController != null && carController.isParked);
-        bool isBrakingVisual = (brakeInput > 0.01f || handbrakeInput > 0.01f || isParked);
+        bool engineIsOff = (carController != null && !carController.engineOn);
+        
+        // --- FIXED: Brake lights ONLY turn on if the player manually presses the pedal ---
+        // The engineIsOff condition is REMOVED from the visual lights step
+        bool isBrakingVisual = (brakeInput > 0.01f || handbrakeInput > 0.01f);
 
         // 1. Control the Visual Spotlights
         float targetIntensity = isBrakingVisual ? lightOnIntensity : lightOffIntensity;
@@ -80,20 +81,19 @@ public class BrakeSystem : MonoBehaviour
             brakeMaterial.SetColor("_EmissionColor", targetColor);
         }
 
-        // Handle physical braking forces
-        if (!isBrakingVisual)
+        // --- PHYSICAL BRAKING FORCES REMAIN SAFELY LOCKED BELOW ---
+        // If engine is off, we still keep the wheels physically frozen so it doesn't roll away
+        bool isCarPhysicallyLocked = (isBrakingVisual || engineIsOff);
+        if (!isCarPhysicallyLocked)
         {
             currentBrakeTorque = 0f;
             currentHandbrakeTorque = 0f;
-            
             foreach (var w in frontWheels) w.brakeTorque = 0f;
             foreach (var w in rearWheels) w.brakeTorque = 0f;
-            
             return; 
         }
 
-        // If locked in park mode, enforce maximum physical braking forces directly
-        float effectiveBrakeInput = isParked ? 1f : brakeInput;
+        float effectiveBrakeInput = engineIsOff ? 1f : brakeInput;
 
         // Ramp main brake torque
         float targetBrake = effectiveBrakeInput * maxBrakeTorque;

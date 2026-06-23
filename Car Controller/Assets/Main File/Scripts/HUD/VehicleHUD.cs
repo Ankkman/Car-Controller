@@ -7,6 +7,7 @@ public class VehicleHUD : MonoBehaviour
     [Header("References")]
     public Rigidbody carRigidbody;
     public Engine engine;
+    public CarController carController;
 
     [Header("UI Text")]
     public TMP_Text speedText;
@@ -33,8 +34,6 @@ public class VehicleHUD : MonoBehaviour
     public float maxSpeed = 240f;
     public float minNeedleAngle = 140f;
     public float maxNeedleAngle = -140f;
-
-    public CarController carController;
 
     void Start()
     {
@@ -67,49 +66,66 @@ public class VehicleHUD : MonoBehaviour
 
     void UpdateSpeed()
     {
-        float speedKmh = carRigidbody.linearVelocity.magnitude * 3.6f;
-        int roundedSpeed = Mathf.RoundToInt(speedKmh);
-        speedText.text = roundedSpeed.ToString();
+        if (speedText == null) return;
 
-        // Speed text changes text color independently
-        if (speedKmh > 200f) speedText.color = Color.red;
-        else if (speedKmh > 160f) speedText.color = Color.yellow;
-        else speedText.color = Color.white;
+        // --- IF ENGINE IS OFF: Show a single 0 ---
+        if (carController != null && !carController.engineOn)
+        {
+            speedText.text = "0";
+            speedText.color = Color.white;
+            return;
+        }
+
+        float speedKmh = carRigidbody != null ? carRigidbody.linearVelocity.magnitude * 3.6f : 0f;
+        int roundedSpeed = Mathf.RoundToInt(speedKmh);
+
+        // Dynamic Speed Text Coloring
+        string speedHexColor = "#FFFFFF"; // Clean white
+        if (speedKmh > 200f) speedHexColor = "#FF0000";      // Redline
+        else if (speedKmh > 160f) speedHexColor = "#FFD700"; // Warning yellow
+
+        // --- UPDATED: No placeholder shadow digits, display active values directly ---
+        speedText.text = $"<color={speedHexColor}>{roundedSpeed}</color>";
     }
+
 
     void UpdateGear()
     {
+        if (carController == null || gearText == null) return;
+
+        // --- FIXED: Clear out text and darken background when engine is off ---
+        if (!carController.engineOn)
+        {
+            gearText.text = ""; 
+            targetGearColor = new Color(0.08f, 0.08f, 0.08f, 0.85f); 
+            targetTextColor = Color.clear; 
+            return;
+        }
+
+        // Read active transmission data when the engine is running
         switch (carController.currentMode)
         {
             case CarController.TransmissionMode.Reverse:
-
                 gearText.text = "R";
-                targetGearColor =
-                    new Color(0.25f, 0.05f, 0.05f, 0.85f);
+                targetGearColor = new Color(0.25f, 0.05f, 0.05f, 0.85f);
                 targetTextColor = Color.red;
                 break;
 
             case CarController.TransmissionMode.Neutral:
-
                 gearText.text = "N";
-                targetGearColor =
-                    new Color(0.12f, 0.12f, 0.12f, 0.85f);
+                targetGearColor = new Color(0.12f, 0.12f, 0.12f, 0.85f);
                 targetTextColor = Color.gray;
                 break;
 
             case CarController.TransmissionMode.Drive:
-
                 gearText.text = "D";
-                targetGearColor =
-                    new Color(0.12f, 0.25f, 0.12f, 0.85f);
+                targetGearColor = new Color(0.12f, 0.25f, 0.12f, 0.85f);
                 targetTextColor = softGreen;
                 break;
 
             case CarController.TransmissionMode.Park:
-
                 gearText.text = "P";
-                targetGearColor =
-                    new Color(0.05f, 0.15f, 0.25f, 0.85f);
+                targetGearColor = new Color(0.05f, 0.15f, 0.25f, 0.85f);
                 targetTextColor = Color.cyan;
                 break;
         }
@@ -117,7 +133,16 @@ public class VehicleHUD : MonoBehaviour
 
     void UpdateNeedle()
     {
-        float speedKmh = carRigidbody.linearVelocity.magnitude * 3.6f;
+        if (speedNeedle == null) return;
+
+        // --- FIXED: Drop dial immediately if engine cuts out ---
+        if (carController != null && !carController.engineOn)
+        {
+            speedNeedle.localRotation = Quaternion.Euler(0, 0, minNeedleAngle);
+            return;
+        }
+
+        float speedKmh = carRigidbody != null ? carRigidbody.linearVelocity.magnitude * 3.6f : 0f;
         float normalizedSpeed = Mathf.Clamp01(speedKmh / maxSpeed);
         float angle = Mathf.Lerp(minNeedleAngle, maxNeedleAngle, normalizedSpeed);
         speedNeedle.localRotation = Quaternion.Euler(0, 0, angle);
@@ -125,14 +150,12 @@ public class VehicleHUD : MonoBehaviour
 
     void ApplySmoothColorTransition()
     {
-        // Smoothly transition background panel color
         if (gearBoxImage != null)
         {
             currentGearColor = Color.Lerp(currentGearColor, targetGearColor, Time.deltaTime * colorTransitionSpeed);
             gearBoxImage.color = currentGearColor;
         }
 
-        // Smoothly transition gear text color
         if (gearText != null)
         {
             currentTextColor = Color.Lerp(currentTextColor, targetTextColor, Time.deltaTime * colorTransitionSpeed);

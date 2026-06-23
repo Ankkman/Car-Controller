@@ -5,6 +5,9 @@ public class HeadlightController : MonoBehaviour
     public Light leftHeadlight;
     public Light rightHeadlight;
 
+    [Header("Audio Settings")]
+    public AudioSource headlightSwitchSound; // Drag an AudioSource here for the click sound
+
     private bool headlightsOn;
 
     void Update()
@@ -15,7 +18,7 @@ public class HeadlightController : MonoBehaviour
         }
     }
 
-    // --- ADD THIS PUBLIC METHOD FOR MOBILE ACCESS ---
+    // --- PUBLIC METHOD FOR MOBILE ACCESS ---
     public void ToggleHeadlights()
     {
         headlightsOn = !headlightsOn;
@@ -25,5 +28,11 @@ public class HeadlightController : MonoBehaviour
 
         if (rightHeadlight != null)
             rightHeadlight.enabled = headlightsOn;
+
+        // --- PLAY HEADLIGHT CLICK SOUND ---
+        if (headlightSwitchSound != null)
+        {
+            headlightSwitchSound.Play();
+        }
     }
 }
