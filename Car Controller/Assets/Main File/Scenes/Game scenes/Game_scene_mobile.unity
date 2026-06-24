@@ -283789,8 +283789,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -684.88, y: -285}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -684.88, y: -226.15}
+  m_SizeDelta: {x: 130, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &855316420
 GameObject:
@@ -297993,6 +297993,135 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 895025900}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &895415629
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 895415630}
+  - component: {fileID: 895415631}
+  m_Layer: 7
+  m_Name: Transmission audio engine
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &895415630
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 895415629}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 882396319387388131}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &895415631
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 895415629}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.4
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &895732092
 GameObject:
   m_ObjectHideFlags: 0
@@ -592696,7 +592825,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -684.88214, y: -352.13208}
+  m_AnchoredPosition: {x: -684.88, y: -321.52}
   m_SizeDelta: {x: 139.6587, y: 60.7361}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1787856082
@@ -594947,7 +595076,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 130, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1795082853
 MonoBehaviour:
@@ -712962,7 +713091,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: -867, y: -70.00003}
+  m_AnchoredPosition: {x: -886, y: 7.5}
   m_SizeDelta: {x: 85, y: 85}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &175609652330830378
@@ -713282,6 +713411,7 @@ MonoBehaviour:
   carRigidbody: {fileID: 6078594105365721814}
   engine: {fileID: 7765982244009449224}
   carController: {fileID: 359237121921489346}
+  inputHandler: {fileID: 9017982459516745336}
   speedText: {fileID: 7661637581671913220}
   gearText: {fileID: 9057689916062723629}
   gearBoxImage: {fileID: 2027291704317164140}
@@ -713290,6 +713420,8 @@ MonoBehaviour:
   maxSpeed: 240
   minNeedleAngle: 140
   maxNeedleAngle: -140
+  shiftPunchScale: 1.35
+  scaleSettleSpeed: 8
 --- !u!114 &486772109162184599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -713603,7 +713735,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 895415630}
   m_Father: {fileID: 7046130600129258678}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &882734778789227559
@@ -724118,7 +724251,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 313, y: -285}
+  m_AnchoredPosition: {x: 313, y: -274}
   m_SizeDelta: {x: 150, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &2860974181247626392
@@ -724138,8 +724271,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -753, y: -119.7}
-  m_SizeDelta: {x: 127.1635, y: 50}
+  m_AnchoredPosition: {x: -790, y: -79.7}
+  m_SizeDelta: {x: 154.5637, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2961963285595283720
 MonoBehaviour:
@@ -725124,13 +725257,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   engine: {fileID: 7765982244009449224}
-  carController: {fileID: 0}
+  carController: {fileID: 359237121921489346}
+  inputHandler: {fileID: 9017982459516745336}
   engineSource: {fileID: 5962671794184418328}
   minPitch: 0.8
   maxPitch: 2
-  minVolume: 1.5
-  maxVolume: 10
+  minVolume: 0.8
+  maxVolume: 2
   maxRPM: 7000
+  transmissionEffectsSource: {fileID: 895415631}
+  gearShiftClickClip: {fileID: 8300000, guid: 0b5e7c4fab23cb8489e42c760ccc5686, type: 3}
 --- !u!222 &4277975424207819689
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -725305,8 +725441,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -26.007, y: 25}
-  m_SizeDelta: {x: 52.0142, y: 50}
+  m_AnchoredPosition: {x: -32.704865, y: 25}
+  m_SizeDelta: {x: 65.41, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &4764625456469691401
 Transform:
@@ -735904,7 +736040,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: cefcda72bc78f044f9cc2291cf78bcbb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 698491d427fd52b4e955d592004a606f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -736230,7 +736366,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: -867, y: 82}
+  m_AnchoredPosition: {x: -886, y: 137}
   m_SizeDelta: {x: 85, y: 85}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &6818976186497687599
@@ -736832,8 +736968,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
-  m_fontSizeBase: 50
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -736842,7 +736978,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: 1.34
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -737016,15 +737152,15 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 6000
       value: 250
-      inSlope: -0.0875
-      outSlope: -0.0875
+      inSlope: -0.08727111
+      outSlope: -0.08727111
       tangentMode: 136
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 7000
-      value: 0
+      time: 6982.8174
+      value: 2.4151
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -737043,24 +737179,30 @@ MonoBehaviour:
   - ratio: 3.5
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 45
   - ratio: 2.2
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 80
   - ratio: 1.5
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 120
   - ratio: 1
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 160
   - ratio: 0.75
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 210
   automatic: 1
   shiftCooldown: 0.3
   throttleInput: 0
   engineRPM: 0
   wheelRPM: 0
   currentGear: 0
+  manualGearIndex: -1
 --- !u!1 &7818174148691111789
 GameObject:
   m_ObjectHideFlags: 0
@@ -737426,8 +737568,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -737436,7 +737578,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: 1.09
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -738397,10 +738539,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 992f6fa940b5d0245a453df0a5f81443, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  carController: {fileID: 0}
-  mobileInput: {fileID: 0}
+  carController: {fileID: 359237121921489346}
+  mobileInput: {fileID: 8015770865677634893}
+  engine: {fileID: 7765982244009449224}
   useAutomaticTransmission: 1
   gearShiftButtons: {fileID: 799894822}
+  shiftUpKey: 101
+  shiftDownKey: 113
 --- !u!224 &9043360301091831560
 RectTransform:
   m_ObjectHideFlags: 0
@@ -738417,7 +738562,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 532.99994, y: -235.00003}
+  m_AnchoredPosition: {x: 532.99994, y: -224.00006}
   m_SizeDelta: {x: 150, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &9057689916062723629

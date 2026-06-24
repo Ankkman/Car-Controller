@@ -8,6 +8,7 @@ public class VehicleHUD : MonoBehaviour
     public Rigidbody carRigidbody;
     public Engine engine;
     public CarController carController;
+    public VehicleInputHandler inputHandler;
 
     [Header("UI Text")]
     public TMP_Text speedText;
@@ -18,7 +19,7 @@ public class VehicleHUD : MonoBehaviour
 
     [Header("Color Settings")]
     [Tooltip("How fast the gear panel and text transition to their new colors.")]
-    public float colorTransitionSpeed = 4f;
+    public float colorTransitionSpeed = 6f; // Bumped up slightly for a snappier feel
 
     // Internal trackers for color interpolation
     private Color targetGearColor;
@@ -34,6 +35,15 @@ public class VehicleHUD : MonoBehaviour
     public float maxSpeed = 240f;
     public float minNeedleAngle = 140f;
     public float maxNeedleAngle = -140f;
+
+    [Header("Juice / Shift Animation")]
+    [Tooltip("How much the gear number grows when you shift.")]
+    public float shiftPunchScale = 1.35f;
+    [Tooltip("How fast the gear number shrinks back to its original size.")]
+    public float scaleSettleSpeed = 8f;
+
+    private string lastDisplayedGear = "";
+    private Vector3 originalGearScale;
 
     void Start()
     {
@@ -53,6 +63,7 @@ public class VehicleHUD : MonoBehaviour
         if (gearText != null)
         {
             gearText.color = currentTextColor;
+            originalGearScale = gearText.transform.localScale; // Save the original size
         }
     }
 
@@ -62,6 +73,7 @@ public class VehicleHUD : MonoBehaviour
         UpdateGear();
         UpdateNeedle();
         ApplySmoothColorTransition();
+        AnimateGearScale(); // Keep tracking the scale animation smoothly
     }
 
     void UpdateSpeed()
@@ -84,10 +96,9 @@ public class VehicleHUD : MonoBehaviour
         if (speedKmh > 200f) speedHexColor = "#FF0000";      // Redline
         else if (speedKmh > 160f) speedHexColor = "#FFD700"; // Warning yellow
 
-        // --- UPDATED: No placeholder shadow digits, display active values directly ---
+        // Display active values directly
         speedText.text = $"<color={speedHexColor}>{roundedSpeed}</color>";
     }
-
 
     void UpdateGear()
     {
@@ -96,7 +107,7 @@ public class VehicleHUD : MonoBehaviour
         // --- FIXED: Clear out text and darken background when engine is off ---
         if (!carController.engineOn)
         {
-            gearText.text = ""; 
+            UpdateGearTextAndCheckPunch("");
             targetGearColor = new Color(0.08f, 0.08f, 0.08f, 0.85f); 
             targetTextColor = Color.clear; 
             return;
@@ -106,29 +117,71 @@ public class VehicleHUD : MonoBehaviour
         switch (carController.currentMode)
         {
             case CarController.TransmissionMode.Reverse:
-                gearText.text = "R";
+                UpdateGearTextAndCheckPunch("R");
                 targetGearColor = new Color(0.25f, 0.05f, 0.05f, 0.85f);
                 targetTextColor = Color.red;
                 break;
 
             case CarController.TransmissionMode.Neutral:
-                gearText.text = "N";
+                UpdateGearTextAndCheckPunch("N");
                 targetGearColor = new Color(0.12f, 0.12f, 0.12f, 0.85f);
                 targetTextColor = Color.gray;
                 break;
 
             case CarController.TransmissionMode.Drive:
-                gearText.text = "D";
+                // --- CHECK IF WE ARE IN MANUAL MODE ---
+                if (inputHandler != null && !inputHandler.useAutomaticTransmission)
+                {
+                    int gearNum = inputHandler.CurrentManualGear;
+                    if (gearNum >= 1 && gearNum <= 6)
+                    {
+                        UpdateGearTextAndCheckPunch(gearNum.ToString());
+                    }
+                    else
+                    {
+                        UpdateGearTextAndCheckPunch("N"); 
+                    }
+                }
+                else
+                {
+                    UpdateGearTextAndCheckPunch("D");
+                }
+                
                 targetGearColor = new Color(0.12f, 0.25f, 0.12f, 0.85f);
                 targetTextColor = softGreen;
                 break;
 
             case CarController.TransmissionMode.Park:
-                gearText.text = "P";
+                UpdateGearTextAndCheckPunch("P");
                 targetGearColor = new Color(0.05f, 0.15f, 0.25f, 0.85f);
                 targetTextColor = Color.cyan;
                 break;
         }
+    }
+
+    // Helper method that checks if the gear string actually changed to trigger a visual pop
+    void UpdateGearTextAndCheckPunch(string newGearString)
+    {
+        if (gearText.text != newGearString)
+        {
+            gearText.text = newGearString;
+            
+            // Only trigger a physical pop if we are shifting between real gears/states (ignores empty engine-off states)
+            if (!string.IsNullOrEmpty(newGearString) && !string.IsNullOrEmpty(lastDisplayedGear))
+            {
+                gearText.transform.localScale = originalGearScale * shiftPunchScale;
+            }
+            
+            lastDisplayedGear = newGearString;
+        }
+    }
+
+    void AnimateGearScale()
+    {
+        if (gearText == null) return;
+        
+        // Smoothly returns the gear text back to its target resting size every frame
+        gearText.transform.localScale = Vector3.Lerp(gearText.transform.localScale, originalGearScale, Time.deltaTime * scaleSettleSpeed);
     }
 
     void UpdateNeedle()
