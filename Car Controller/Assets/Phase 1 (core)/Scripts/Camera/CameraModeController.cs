@@ -1,77 +1,145 @@
-using UnityEngine;
+using UnityEngine; 
 
-public class CameraModeController : MonoBehaviour
-{
-    public SimpleFollow thirdPersonCamera;
+public class CameraModeController : MonoBehaviour  
+{  
+    [Header("Camera Modes")]  
+    public SimpleFollow thirdPersonCameraScript; // Drag your camera's SimpleFollow script component here 
 
-    public Transform driverViewPoint;
-    public Transform driverCameraPivot;
+    [Header("Driver View Settings")]  
+    public float steeringLookAmount = 12f;  
+    public float steeringSmooth = 5f;  
+    public float driverFOV = 75f;  
+    public float thirdPersonFOV = 60f; 
 
-    public CarController carController;
+    // Runtime Dynamic Target References  
+    private Transform activeDriverViewPoint;  
+    private Transform activeInteriorSteeringWheel;  
+    private CarController activeCarController; 
 
-    private Camera cam;
+    private Camera cam;  
+    private bool isDriverModeActive = false;  
+    private float currentLookAngle; 
 
-    private bool driverMode = false;
+    // Caches the original local rotation of the spawned steering wheel  
+    private Quaternion originalWheelLocalRotation; 
 
-    [Header("Driver Camera")]
-    public float steeringLookAmount = 12f;
-    public float steeringSmooth = 5f;
+    void Start()  
+    {  
+        cam = GetComponent<Camera>(); 
 
-    private float currentLookAngle;
+        if (thirdPersonCameraScript == null)  
+        {  
+            thirdPersonCameraScript = GetComponent<SimpleFollow>();  
+        } 
 
-    void Start()
-    {
-        cam = Camera.main;
-    }
+        FindAndLinkActiveCar();  
+    } 
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            driverMode = !driverMode;
+    void Update()  
+    {  
+        // SYSTEM RUNTIME LINK: If our car target goes missing or swapped, find the new one instantly  
+        if (activeCarController == null || activeDriverViewPoint == null)  
+        {  
+            FindAndLinkActiveCar();  
+        } 
 
-            if (driverMode)
-            {
-                thirdPersonCamera.enabled = false;
-                cam.fieldOfView = 75f;
-            }
-            else
-            {
-                thirdPersonCamera.enabled = true;
-                cam.fieldOfView = 60f;
-            }
-        }
+        // Camera mode toggle trigger (Works via PC keyboard "C" or public method call for UI buttons)  
+        if (Input.GetKeyDown(KeyCode.C))  
+        {  
+            ToggleCameraViewMode();  
+        } 
 
-        if (driverMode)
-        {
-            UpdateDriverCamera();
-        }
-    }
+        if (isDriverModeActive)  
+        {  
+            UpdateDriverCameraPosition();  
+            UpdateInteriorSteeringWheelRotation();  
+        }  
+    } 
 
-    void UpdateDriverCamera()
-    {
-        cam.transform.position =
-            driverViewPoint.position;
+    public void ToggleCameraViewMode()  
+    {  
+        isDriverModeActive = !isDriverModeActive; 
 
-        float steer =
-            Input.GetAxis("Horizontal");
+        if (isDriverModeActive)  
+        {  
+            if (thirdPersonCameraScript != null) thirdPersonCameraScript.enabled = false;  
+            if (cam != null) cam.fieldOfView = driverFOV;  
+        }  
+        else  
+        {  
+            if (thirdPersonCameraScript != null) thirdPersonCameraScript.enabled = true;  
+            if (cam != null) cam.fieldOfView = thirdPersonFOV;  
+        }  
+    } 
 
-        float targetAngle =
-            steer * steeringLookAmount;
+    private void FindAndLinkActiveCar()  
+    {  
+        GameObject playerVehicle = GameObject.FindGameObjectWithTag("Player");  
+        if (playerVehicle != null)  
+        {  
+            activeCarController = playerVehicle.GetComponent<CarController>(); 
 
-        currentLookAngle =
-            Mathf.Lerp(
-                currentLookAngle,
-                targetAngle,
-                Time.deltaTime * steeringSmooth
-            );
+            activeDriverViewPoint = FindChildWithNameRecursive(playerVehicle.transform, "DriverViewPoint"); 
 
-        cam.transform.rotation =
-            driverViewPoint.rotation *
-            Quaternion.Euler(
-                0,
-                currentLookAngle,
-                0
-            );
-    }
+            Transform newWheel = FindChildWithNameRecursive(playerVehicle.transform, "InteriorSteeringWheel");  
+            if (newWheel != activeInteriorSteeringWheel)  
+            {  
+                activeInteriorSteeringWheel = newWheel; 
+
+                if (activeInteriorSteeringWheel != null)  
+                {  
+                    originalWheelLocalRotation = activeInteriorSteeringWheel.localRotation;  
+                }  
+            }  
+        }  
+    } 
+
+    private Transform FindChildWithNameRecursive(Transform parent, string targetName)  
+    {  
+        if (parent.name == targetName) return parent; 
+
+        foreach (Transform child in parent)  
+        {  
+            Transform result = FindChildWithNameRecursive(child, targetName);  
+            if (result != null) return result;  
+        }  
+        return null;  
+    } 
+
+    private void UpdateDriverCameraPosition()  
+    {  
+        if (activeDriverViewPoint == null) return; 
+
+        transform.position = activeDriverViewPoint.position; 
+
+        // --- FIXED FOR ALL LAYOUTS ---  
+        // Reads the absolute true computed steering value running tire mechanics  
+        float steeringInput = GetTrueSteeringValue(); 
+
+        float targetAngle = steeringInput * steeringLookAmount;  
+        currentLookAngle = Mathf.Lerp(currentLookAngle, targetAngle, Time.deltaTime * steeringSmooth); 
+
+        transform.rotation = activeDriverViewPoint.rotation * Quaternion.Euler(0, currentLookAngle, 0);  
+    } 
+
+    private void UpdateInteriorSteeringWheelRotation()  
+    {  
+        if (activeInteriorSteeringWheel == null || activeCarController == null) return; 
+
+        // --- FIXED FOR ALL LAYOUTS ---  
+        // Pulls the absolute final steering data right from the engine matrix pipeline  
+        float currentSteeringValue = GetTrueSteeringValue(); 
+
+        float visualWheelRotationAngle = currentSteeringValue * 360f; 
+
+        activeInteriorSteeringWheel.localRotation = originalWheelLocalRotation * Quaternion.Euler(0f, 0f, visualWheelRotationAngle);  
+    } 
+
+    private float GetTrueSteeringValue()  
+    {  
+        if (activeCarController == null) return 0f; 
+
+        // --- FIXED: Directly requests the true, actual steering angle calculated by the car ---  
+        return activeCarController.CurrentSteerInput;  
+    }  
 }

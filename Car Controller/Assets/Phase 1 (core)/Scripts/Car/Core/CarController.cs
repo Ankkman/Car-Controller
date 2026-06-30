@@ -44,6 +44,9 @@ public class CarController : MonoBehaviour
     private float steerInput;
     private float brakeInput;
 
+    public float CurrentSteerInput => steerInput; // Allows other scripts to read it safely
+
+
     public BrakeSystem brakeSystem;
     public Engine engine;
 

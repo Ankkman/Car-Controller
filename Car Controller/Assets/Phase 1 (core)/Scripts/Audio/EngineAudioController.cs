@@ -31,11 +31,23 @@ public class EngineAudioController : MonoBehaviour
 
     void Start()
     {
-        if (carController == null) 
-            carController = GetComponentInParent<CarController>();
-            
+        // --- FIXED INITIALIZATION FOR RUNTIME DYNAMIC COUPLING ---
+        if (carController == null) carController = GetComponent<CarController>();
+        if (carController == null) carController = GetComponentInParent<CarController>();
+
+        if (inputHandler == null) inputHandler = GetComponent<VehicleInputHandler>();
+        if (inputHandler == null) inputHandler = GetComponentInParent<VehicleInputHandler>();
+        
+        // Final fallback if the audio controller sits on a deeply nested child object
         if (inputHandler == null)
-            inputHandler = GetComponentInParent<VehicleInputHandler>();
+        {
+            Transform searchObj = transform;
+            while (searchObj != null && inputHandler == null)
+            {
+                inputHandler = searchObj.GetComponent<VehicleInputHandler>();
+                searchObj = searchObj.parent;
+            }
+        }
 
         if (engineSource != null)
         {
@@ -58,6 +70,16 @@ public class EngineAudioController : MonoBehaviour
 
     void Update()
     {
+        // Try to relink if our handler was missed during awake instantiation frames
+        if (inputHandler == null)
+        {
+            GameObject playerVehicle = GameObject.FindGameObjectWithTag("Player");
+            if (playerVehicle != null)
+            {
+                inputHandler = playerVehicle.GetComponent<VehicleInputHandler>();
+            }
+        }
+
         if (engine == null || engineSource == null || carController == null)
             return;
 
@@ -78,19 +100,17 @@ public class EngineAudioController : MonoBehaviour
         {
             misShiftTimer -= Time.deltaTime;
             
-            // Add a vibrating engine wobble effect using a fast math sine wave
             float wobble = Mathf.Sin(Time.time * 60f) * 0.15f;
             engineSource.pitch = misShiftPitchTarget + wobble;
-            engineSource.volume = maxVolume; // Max out volume during a bad shift
+            engineSource.volume = maxVolume; 
 
             if (misShiftTimer <= 0f)
             {
-                isMisShifting = false; // Reset back to normal engine simulation
+                isMisShifting = false; 
             }
         }
         else
         {
-            // Normal Engine Physics Calculation
             float rpmNormalized = Mathf.Clamp01(engine.EngineRPM / maxRPM);
             engineSource.pitch = Mathf.Lerp(minPitch, maxPitch, rpmNormalized);
             engineSource.volume = Mathf.Lerp(minVolume, maxVolume, rpmNormalized);
@@ -101,13 +121,11 @@ public class EngineAudioController : MonoBehaviour
 
         if (activeGear != lastMonitoredGear)
         {
-            // --- ADD THIS IF CHECK ---
-            // Only play the sound in manual mode!
-            if (!engine.automatic) 
+            // Only play the click sound if manual mode is running!
+            if (inputHandler != null && !inputHandler.useAutomaticTransmission) 
             {
                 PlayGearClick();
             }
-            // --------------------------
             
             lastMonitoredGear = activeGear;
         }
@@ -121,11 +139,10 @@ public class EngineAudioController : MonoBehaviour
         }
     }
 
-    // NEW PUBLIC METHOD: Call this when a bad gear shift is attempted!
     public void TriggerEngineMisShiftScream()
     {
         isMisShifting = true;
-        misShiftTimer = 0.45f; // Screen lasts for about half a second
-        misShiftPitchTarget = maxPitch * 1.25f; // Boosts pitch past the normal maximum redline
+        misShiftTimer = 0.45f; 
+        misShiftPitchTarget = maxPitch * 1.25f; 
     }
 }

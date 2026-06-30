@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Phase 1 (core)/Scenes/Ui Scenes/MainMenu.unity
     guid: b77d16e53c5a82c42ae53f4ff7c94429
   - enabled: 1
+    path: Assets/Phase 1 (core)/Scenes/Ui Scenes/CarSelectScene.unity
+    guid: 000a7f028bfc3d6489e1a7ac4373b64e
+  - enabled: 1
     path: Assets/Phase 1 (core)/Scenes/Game scenes/Game_scene_mobile.unity
     guid: 917f3df8e9ef206489d68d6b07cadcb1
   m_configObjects:
