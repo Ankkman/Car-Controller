@@ -6,16 +6,13 @@ namespace FCG
 {
     public class TrafficLights : MonoBehaviour
     {
-
         private float countTime = 0;
         private int step = 0;
-
 
         [System.Serializable]
         public class TrafficLightState
         {
             public int status = 0; // (1 and 4 = RED) , (2 = Yellow) , (3 = Green) 
-
 
             public GameObject t31;
             public GameObject t13;
@@ -23,36 +20,19 @@ namespace FCG
             public GameObject t12;
             public GameObject t11;
 
-
             public GameObject stop31;
             public GameObject stop13;
-
-
-
         }
-
-
         public TrafficLightState tState;
-
-
         // Use this for initialization
         void Start()
         {
-
             countTime = 0;
             step = 0;
-
             tState.status = (Random.Range(1, 8) < 4) ? 13 : 31;
-
             EnabledObjects(tState.status);
-
             InvokeRepeating("Semaforo", Random.Range(0, 4), 1);
-
-
         }
-
-
-
         private void Semaforo()
         {
             countTime += 1;
@@ -109,14 +89,9 @@ namespace FCG
                 }
 
             }
-
-
         }
-
-
         void EnabledObjects(int habilita)
         {
-
             tState.t12.SetActive(habilita == 12);
             tState.t21.SetActive(habilita == 21);
             tState.t13.SetActive(habilita == 13);
@@ -125,12 +100,6 @@ namespace FCG
 
             tState.stop13.SetActive(habilita != 31);
             tState.stop31.SetActive(habilita != 13);
-
-
-
         }
-
-
-
     }
 }

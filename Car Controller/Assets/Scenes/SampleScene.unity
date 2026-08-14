@@ -2320,24 +2320,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2597699322649540588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3015719130382824366}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ddd3f0f31fe8c24d8c8ba0a168ed8d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  leftBrakeLight: {fileID: 4904021836643850944}
-  rightBrakeLight: {fileID: 6657794692160089219}
-  carRenderer: {fileID: 1652926307052497539}
-  brakeMaterialIndex: 20
-  lightOnIntensity: 5
-  lightOffIntensity: 0
 --- !u!114 &2695649037204127987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2553,10 +2535,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   carRigidbody: {fileID: 5530131034926335610}
   engine: {fileID: 5992222725498443245}
+  carController: {fileID: 0}
+  inputHandler: {fileID: 0}
   speedText: {fileID: 3822612903897342599}
   gearText: {fileID: 8213441866323745111}
   gearBoxImage: {fileID: 2965886922350629778}
   colorTransitionSpeed: 5
+  speedNeedle: {fileID: 0}
+  maxSpeed: 240
+  minNeedleAngle: 140
+  maxNeedleAngle: -140
+  shiftPunchScale: 1.35
+  scaleSettleSpeed: 8
 --- !u!114 &2965886922350629778
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2618,7 +2608,6 @@ GameObject:
   - component: {fileID: 468552476220438738}
   - component: {fileID: 6484520515145915096}
   - component: {fileID: 5992222725498443245}
-  - component: {fileID: 2597699322649540588}
   - component: {fileID: 4141146053587833437}
   - component: {fileID: 6411422276466439635}
   - component: {fileID: 2457763960981266952}
@@ -3019,12 +3008,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   engine: {fileID: 5992222725498443245}
+  carController: {fileID: 0}
+  inputHandler: {fileID: 0}
   engineSource: {fileID: 5405233366207111754}
   minPitch: 0.8
   maxPitch: 2
   minVolume: 0.3
   maxVolume: 1
   maxRPM: 7000
+  pitchSmoothSpeed: 12
+  loadVolumeContribution: 0.25
+  transmissionEffectsSource: {fileID: 0}
+  gearShiftClickClip: {fileID: 0}
 --- !u!146 &4144850015909425735
 WheelCollider:
   m_ObjectHideFlags: 0
@@ -3858,28 +3853,35 @@ MonoBehaviour:
   - {fileID: 607841021397443641}
   - {fileID: 4144850015909425735}
   finalDriveRatio: 3.5
+  reverseGearRatio: -2.8
   gears:
   - ratio: 3.5
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 0
   - ratio: 2.2
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 0
   - ratio: 1.5
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 0
   - ratio: 1
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 0
   - ratio: 0.75
     shiftUpRPM: 5500
     shiftDownRPM: 3000
+    maxSpeed: 0
   automatic: 1
   shiftCooldown: 0.3
   throttleInput: 0
   engineRPM: 0
   wheelRPM: 0
   currentGear: 0
+  manualGearIndex: -1
 --- !u!4 &6021257688259902449
 Transform:
   m_ObjectHideFlags: 0
@@ -4070,6 +4072,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   leftHeadlight: {fileID: 6118839903376188200}
   rightHeadlight: {fileID: 7343930700053754647}
+  headlightSwitchSound: {fileID: 0}
 --- !u!114 &6484520515145915096
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4104,6 +4107,7 @@ MonoBehaviour:
   rearWheels:
   - {fileID: 607841021397443641}
   - {fileID: 4144850015909425735}
+  brakeInput: 0
 --- !u!1 &6518662591580621668
 GameObject:
   m_ObjectHideFlags: 0
@@ -4267,6 +4271,15 @@ MonoBehaviour:
   maxSteerAngle: 30
   brakeTorque: 3000
   centerOfMassOffset: {x: 0, y: -0.5, z: 0}
+  isAutomaticMode: 1
+  currentMode: 0
+  transmissionSwitchSpeed: 1
+  engineOn: 0
+  engineStartSound: {fileID: 0}
+  engineStopSound: {fileID: 0}
+  useMobileInputs: 0
+  mobileVerticalInput: 0
+  mobileSteerInput: 0
   brakeSystem: {fileID: 6484520515145915096}
   engine: {fileID: 5992222725498443245}
 --- !u!81 &6855373614116375778

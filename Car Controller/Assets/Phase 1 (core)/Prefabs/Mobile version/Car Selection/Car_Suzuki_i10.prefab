@@ -635,7 +635,7 @@ Transform:
   m_GameObject: {fileID: 870372193299856392}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.6, z: -9.8}
+  m_LocalPosition: {x: 0.54, y: -0.52, z: 8.43}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -16596,7 +16596,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -341.30103, y: 0.249, z: -190.67}
   m_LocalScale: {x: 0.27, y: 0.27, z: 0.27}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3931934750332302908}
   - {fileID: 9136383140510306425}
@@ -16631,7 +16631,7 @@ Rigidbody:
   m_GameObject: {fileID: 4408321588339320064}
   serializedVersion: 4
   m_Mass: 1500
-  m_Drag: 0.05
+  m_Drag: 0.01
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -16648,7 +16648,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 2
+  m_CollisionDetection: 1
 --- !u!65 &5454651923422371108
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -16668,8 +16668,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: -9.46, y: 6.4, z: 18.05}
-  m_Center: {x: 0, y: 4.01, z: -0.15}
+  m_Size: {x: -8.24, y: 5.74, z: 17.7}
+  m_Center: {x: 0, y: 4.23, z: -0.15}
 --- !u!114 &3988764203059650473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16691,13 +16691,13 @@ MonoBehaviour:
   motorTorque: 1500
   maxSteerAngle: 30
   brakeTorque: 3000
-  centerOfMassOffset: {x: 0, y: -0.5, z: 0}
+  centerOfMassOffset: {x: 0, y: -0.8, z: 0}
   isAutomaticMode: 1
   currentMode: 0
   transmissionSwitchSpeed: 1
   engineOn: 0
-  engineStartSound: {fileID: 0}
-  engineStopSound: {fileID: 0}
+  engineStartSound: {fileID: 3592334525185739606}
+  engineStopSound: {fileID: 1107129781567922936}
   useMobileInputs: 0
   mobileVerticalInput: 0
   mobileSteerInput: 0
@@ -16794,7 +16794,7 @@ MonoBehaviour:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 3000
-      value: 350
+      value: 400
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -16802,17 +16802,17 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 6000
-      value: 250
-      inSlope: -0.08727111
-      outSlope: -0.08727111
+      time: 5500
+      value: 360
+      inSlope: -0.040000003
+      outSlope: -0.040000003
       tangentMode: 136
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 6982.8174
-      value: 2.4151
+      time: 7000
+      value: 180
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -16825,28 +16825,28 @@ MonoBehaviour:
   driveWheels:
   - {fileID: 5383078186465489853}
   - {fileID: 9036534654432960661}
-  finalDriveRatio: 3.5
+  finalDriveRatio: 3
   reverseGearRatio: -2.8
   gears:
   - ratio: 3.5
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 45
   - ratio: 2.2
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 80
   - ratio: 1.5
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 120
   - ratio: 1
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 160
   - ratio: 0.75
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 210
   automatic: 1
   shiftCooldown: 0.3
@@ -16876,6 +16876,8 @@ MonoBehaviour:
   minVolume: 0.3
   maxVolume: 1
   maxRPM: 7000
+  pitchSmoothSpeed: 12
+  loadVolumeContribution: 0.25
   transmissionEffectsSource: {fileID: 4917549117198437600}
   gearShiftClickClip: {fileID: 8300000, guid: 0b5e7c4fab23cb8489e42c760ccc5686, type: 3}
 --- !u!114 &4159571765988888625
@@ -16989,12 +16991,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6689fd0de64256d4aa03e0ab7625d0bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  thirdPersonCamera: {fileID: 0}
-  driverViewPoint: {fileID: 6574951219466306731}
-  driverCameraPivot: {fileID: 6737837832840711461}
-  carController: {fileID: 3988764203059650473}
+  thirdPersonCameraScript: {fileID: 0}
   steeringLookAmount: 12
   steeringSmooth: 5
+  driverFOV: 75
+  thirdPersonFOV: 60
 --- !u!114 &4977015033717304905
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -26,6 +26,11 @@ public class CarSpawner : MonoBehaviour
         // Spawn the new car
         GameObject newCar = Instantiate(carPrefabs[index], spawnPoint.position, spawnPoint.rotation);
         newCar.tag = "Player";
+
+        // --- LINK THE CAMERA TO THE NEW CAR ---
+        FreeLookCamera cameraScript = FindObjectOfType<FreeLookCamera>();
+        if (cameraScript != null) cameraScript.SetCar(newCar);
+        // ---------------------------------------
         
         // --- FIND THE UI AND LINK IT TO THE NEW CAR ---
         // 1. Find the Canvas UIManager

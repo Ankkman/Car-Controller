@@ -27,13 +27,9 @@ namespace FCG
             status = (Random.Range(1, 8) < 4) ? 13 : 31;
 
             EnabledObjects(status);
-
             InvokeRepeating(nameof(TrafficLightTurn), Random.Range(0, 4), 1);
 
-
         }
-
-
 
         private void TrafficLightTurn()
         {
@@ -89,10 +85,7 @@ namespace FCG
 
                     EnabledObjects(status);
                 }
-
             }
-
-
         }
 
 
@@ -112,6 +105,5 @@ namespace FCG
                 trafficLight_W.SetStatus(st.ToString().Substring(1, 1));
 
         }
-
     }
 }

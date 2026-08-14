@@ -237,7 +237,7 @@ Rigidbody:
   m_GameObject: {fileID: 457096184474072836}
   serializedVersion: 4
   m_Mass: 1500
-  m_Drag: 0.05
+  m_Drag: 0.03
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -254,7 +254,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 2
+  m_CollisionDetection: 1
 --- !u!114 &619968881990212425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -391,7 +391,7 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 1000
-      value: 200
+      value: 180
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -400,7 +400,7 @@ MonoBehaviour:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 3000
-      value: 350
+      value: 400
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -408,17 +408,17 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 6000
-      value: 250
-      inSlope: -0.08727111
-      outSlope: -0.08727111
+      time: 5500
+      value: 360
+      inSlope: -0.040000003
+      outSlope: -0.040000003
       tangentMode: 136
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 6982.8174
-      value: 2.4151
+      time: 7000
+      value: 180
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -435,24 +435,24 @@ MonoBehaviour:
   reverseGearRatio: -2.8
   gears:
   - ratio: 3.5
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 45
   - ratio: 2.2
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 80
   - ratio: 1.5
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 120
   - ratio: 1
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 160
   - ratio: 0.75
-    shiftUpRPM: 5500
-    shiftDownRPM: 3000
+    shiftUpRPM: 6500
+    shiftDownRPM: 3800
     maxSpeed: 210
   automatic: 1
   shiftCooldown: 0.3
@@ -482,6 +482,8 @@ MonoBehaviour:
   minVolume: 0.8
   maxVolume: 2
   maxRPM: 7000
+  pitchSmoothSpeed: 12
+  loadVolumeContribution: 0.25
   transmissionEffectsSource: {fileID: 1012657514265484374}
   gearShiftClickClip: {fileID: 8300000, guid: 0b5e7c4fab23cb8489e42c760ccc5686, type: 3}
 --- !u!114 &41494487826571148
@@ -559,12 +561,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6689fd0de64256d4aa03e0ab7625d0bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  thirdPersonCamera: {fileID: 0}
-  driverViewPoint: {fileID: 6650293751020248990}
-  driverCameraPivot: {fileID: 2967110301817838139}
-  carController: {fileID: 619968881990212425}
+  thirdPersonCameraScript: {fileID: 0}
   steeringLookAmount: 12
   steeringSmooth: 5
+  driverFOV: 75
+  thirdPersonFOV: 60
 --- !u!114 &1519010982003524654
 MonoBehaviour:
   m_ObjectHideFlags: 0

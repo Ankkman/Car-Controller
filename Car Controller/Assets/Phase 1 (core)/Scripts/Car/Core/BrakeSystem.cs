@@ -63,11 +63,11 @@ public class BrakeSystem : MonoBehaviour
 
     void FixedUpdate()
     {
-        bool engineIsOff = (carController != null && !carController.engineOn);
+        bool engineIsOn = (carController != null && carController.engineOn);
+        bool engineIsOff = !engineIsOn;
         
-        // --- FIXED: Brake lights ONLY turn on if the player manually presses the pedal ---
-        // The engineIsOff condition is REMOVED from the visual lights step
-        bool isBrakingVisual = (brakeInput > 0.01f || handbrakeInput > 0.01f);
+        // --- FIX: Brake lights ONLY turn on if the engine is actually running AND a brake is pressed ---
+        bool isBrakingVisual = engineIsOn && (brakeInput > 0.01f || handbrakeInput > 0.01f);
 
         // 1. Control the Visual Spotlights
         float targetIntensity = isBrakingVisual ? lightOnIntensity : lightOffIntensity;
@@ -77,13 +77,14 @@ public class BrakeSystem : MonoBehaviour
         // 2. Control the Visual Mesh Material Glow
         if (brakeMaterial != null)
         {
-            Color targetColor = isBrakingVisual ? emissionOnColor : emissionOffColor;
+            // Force true darkness (black) when engine is off, or use emissionOffColor when engine is idling
+            Color targetColor = isBrakingVisual ? emissionOnColor : (engineIsOn ? emissionOffColor : Color.black);
             brakeMaterial.SetColor("_EmissionColor", targetColor);
         }
 
         // --- PHYSICAL BRAKING FORCES REMAIN SAFELY LOCKED BELOW ---
         // If engine is off, we still keep the wheels physically frozen so it doesn't roll away
-        bool isCarPhysicallyLocked = (isBrakingVisual || engineIsOff);
+        bool isCarPhysicallyLocked = ((brakeInput > 0.01f || handbrakeInput > 0.01f) || engineIsOff);
         if (!isCarPhysicallyLocked)
         {
             currentBrakeTorque = 0f;
@@ -105,6 +106,7 @@ public class BrakeSystem : MonoBehaviour
 
         ApplyBrakes();
     }
+
 
     void ApplyBrakes()
     {

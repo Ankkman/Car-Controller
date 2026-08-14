@@ -3,7 +3,7 @@ using UnityEngine;
 public class CameraModeController : MonoBehaviour  
 {  
     [Header("Camera Modes")]  
-    public SimpleFollow thirdPersonCameraScript; // Drag your camera's SimpleFollow script component here 
+    public FreeLookCamera thirdPersonCameraScript; // Now tracking our FreeLookCamera component!
 
     [Header("Driver View Settings")]  
     public float steeringLookAmount = 12f;  
@@ -11,7 +11,6 @@ public class CameraModeController : MonoBehaviour
     public float driverFOV = 75f;  
     public float thirdPersonFOV = 60f; 
 
-    // Runtime Dynamic Target References  
     private Transform activeDriverViewPoint;  
     private Transform activeInteriorSteeringWheel;  
     private CarController activeCarController; 
@@ -20,7 +19,6 @@ public class CameraModeController : MonoBehaviour
     private bool isDriverModeActive = false;  
     private float currentLookAngle; 
 
-    // Caches the original local rotation of the spawned steering wheel  
     private Quaternion originalWheelLocalRotation; 
 
     void Start()  
@@ -29,7 +27,7 @@ public class CameraModeController : MonoBehaviour
 
         if (thirdPersonCameraScript == null)  
         {  
-            thirdPersonCameraScript = GetComponent<SimpleFollow>();  
+            thirdPersonCameraScript = GetComponent<FreeLookCamera>();  
         } 
 
         FindAndLinkActiveCar();  
@@ -37,13 +35,11 @@ public class CameraModeController : MonoBehaviour
 
     void Update()  
     {  
-        // SYSTEM RUNTIME LINK: If our car target goes missing or swapped, find the new one instantly  
         if (activeCarController == null || activeDriverViewPoint == null)  
         {  
             FindAndLinkActiveCar();  
         } 
 
-        // Camera mode toggle trigger (Works via PC keyboard "C" or public method call for UI buttons)  
         if (Input.GetKeyDown(KeyCode.C))  
         {  
             ToggleCameraViewMode();  
@@ -62,12 +58,14 @@ public class CameraModeController : MonoBehaviour
 
         if (isDriverModeActive)  
         {  
-            if (thirdPersonCameraScript != null) thirdPersonCameraScript.enabled = false;  
+            // --- FIX: Stop FreeLookCamera calculations completely so swipe rotation is blocked ---
+            if (thirdPersonCameraScript != null) thirdPersonCameraScript.isControlDisabled = true;  
             if (cam != null) cam.fieldOfView = driverFOV;  
         }  
         else  
         {  
-            if (thirdPersonCameraScript != null) thirdPersonCameraScript.enabled = true;  
+            // --- FIX: Hand control back over to Third Person FreeLook tracking ---
+            if (thirdPersonCameraScript != null) thirdPersonCameraScript.isControlDisabled = false;  
             if (cam != null) cam.fieldOfView = thirdPersonFOV;  
         }  
     } 
@@ -78,14 +76,12 @@ public class CameraModeController : MonoBehaviour
         if (playerVehicle != null)  
         {  
             activeCarController = playerVehicle.GetComponent<CarController>(); 
-
             activeDriverViewPoint = FindChildWithNameRecursive(playerVehicle.transform, "DriverViewPoint"); 
 
             Transform newWheel = FindChildWithNameRecursive(playerVehicle.transform, "InteriorSteeringWheel");  
             if (newWheel != activeInteriorSteeringWheel)  
             {  
                 activeInteriorSteeringWheel = newWheel; 
-
                 if (activeInteriorSteeringWheel != null)  
                 {  
                     originalWheelLocalRotation = activeInteriorSteeringWheel.localRotation;  
@@ -112,10 +108,7 @@ public class CameraModeController : MonoBehaviour
 
         transform.position = activeDriverViewPoint.position; 
 
-        // --- FIXED FOR ALL LAYOUTS ---  
-        // Reads the absolute true computed steering value running tire mechanics  
         float steeringInput = GetTrueSteeringValue(); 
-
         float targetAngle = steeringInput * steeringLookAmount;  
         currentLookAngle = Mathf.Lerp(currentLookAngle, targetAngle, Time.deltaTime * steeringSmooth); 
 
@@ -126,10 +119,7 @@ public class CameraModeController : MonoBehaviour
     {  
         if (activeInteriorSteeringWheel == null || activeCarController == null) return; 
 
-        // --- FIXED FOR ALL LAYOUTS ---  
-        // Pulls the absolute final steering data right from the engine matrix pipeline  
         float currentSteeringValue = GetTrueSteeringValue(); 
-
         float visualWheelRotationAngle = currentSteeringValue * 360f; 
 
         activeInteriorSteeringWheel.localRotation = originalWheelLocalRotation * Quaternion.Euler(0f, 0f, visualWheelRotationAngle);  
@@ -138,8 +128,6 @@ public class CameraModeController : MonoBehaviour
     private float GetTrueSteeringValue()  
     {  
         if (activeCarController == null) return 0f; 
-
-        // --- FIXED: Directly requests the true, actual steering angle calculated by the car ---  
         return activeCarController.CurrentSteerInput;  
     }  
 }
